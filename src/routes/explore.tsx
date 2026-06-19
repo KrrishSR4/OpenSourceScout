@@ -102,7 +102,7 @@ function ExplorePage() {
           </p>
 
           {/* Search panel */}
-          <div className="mt-10 rounded-3xl border border-border bg-white/80 p-3 shadow-[var(--shadow-elegant)] backdrop-blur md:p-4">
+          <div className="mt-10 rounded-3xl border border-border bg-surface/80 p-3 shadow-[var(--shadow-elegant)] backdrop-blur md:p-4">
             <div className="grid gap-3 md:grid-cols-[1.1fr_1.1fr_auto]">
               {/* Language combobox */}
               <div className="relative">
@@ -116,7 +116,7 @@ function ExplorePage() {
                   }}
                   list="language-list"
                   placeholder="Programming language (e.g. TypeScript)"
-                  className="h-14 w-full rounded-2xl border border-border bg-secondary/60 pl-11 pr-4 text-sm text-ink outline-none transition focus:border-[var(--color-accent)] focus:bg-white"
+                  className="h-14 w-full rounded-2xl border border-border bg-secondary/60 pl-11 pr-4 text-sm text-ink outline-none transition focus:border-[var(--color-accent)] focus:bg-surface"
                 />
                 <datalist id="language-list">
                   {LANGUAGES.map((l) => (
@@ -124,7 +124,7 @@ function ExplorePage() {
                   ))}
                 </datalist>
                 {languageInput && !language && (
-                  <div className="absolute z-30 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-border bg-white p-1 shadow-lg">
+                  <div className="absolute z-30 mt-2 max-h-64 w-full overflow-auto rounded-xl border border-border bg-surface p-1 shadow-lg">
                     {LANGUAGES.filter((l) =>
                       l.name.toLowerCase().includes(languageInput.toLowerCase()),
                     ).map((l) => (
@@ -146,7 +146,7 @@ function ExplorePage() {
                 <button
                   disabled={!language}
                   onClick={() => setOpen((v) => !v)}
-                  className="flex h-14 w-full items-center justify-between rounded-2xl border border-border bg-secondary/60 px-4 text-sm text-ink transition disabled:opacity-50 hover:bg-white"
+                  className="flex h-14 w-full items-center justify-between rounded-2xl border border-border bg-secondary/60 px-4 text-sm text-ink transition disabled:opacity-50 hover:bg-surface"
                 >
                   <span className={framework ? "" : "text-muted-foreground"}>
                     {framework ? frameworks.find((f) => f.topic === framework)?.name : "Choose framework"}
@@ -160,7 +160,7 @@ function ExplorePage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: 0.18 }}
-                      className="absolute z-30 mt-2 w-full overflow-hidden rounded-2xl border border-border bg-white p-2 shadow-xl"
+                      className="absolute z-30 mt-2 w-full overflow-hidden rounded-2xl border border-border bg-surface p-2 shadow-xl"
                     >
                       <button
                         onClick={() => {
@@ -221,7 +221,7 @@ function ExplorePage() {
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
                     language === l.key
                       ? "border-ink bg-ink text-white"
-                      : "border-border bg-white text-muted-foreground hover:text-ink"
+                      : "border-border bg-surface text-muted-foreground hover:text-ink"
                   }`}
                 >
                   <span className="h-1.5 w-1.5 rounded-full" style={{ background: l.color }} />
@@ -282,7 +282,7 @@ function ExplorePage() {
               transition={{ duration: 0.4 }}
             >
               {mutation.data.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-white p-10 text-center text-muted-foreground">
+                <div className="rounded-2xl border border-border bg-surface p-10 text-center text-muted-foreground">
                   No repositories matched. Try removing the framework, or pick a different language.
                 </div>
               ) : (
@@ -308,7 +308,7 @@ function ExplorePage() {
               key="idle"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="rounded-3xl border border-dashed border-border bg-white/60 p-12 text-center"
+              className="rounded-3xl border border-dashed border-border bg-surface/60 p-12 text-center"
             >
               <Sparkles className="mx-auto h-6 w-6 text-[var(--color-accent)]" />
               <p className="mt-3 font-display text-2xl text-ink">Pick a language to get started</p>
@@ -338,7 +338,7 @@ function ExplorePage() {
 
 function Skeleton() {
   return (
-    <div className="rounded-2xl border border-border bg-white p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <div className="h-4 w-1/3 animate-shimmer rounded bg-gradient-to-r from-secondary via-secondary/60 to-secondary" />
       <div className="mt-3 h-3 w-4/5 animate-shimmer rounded bg-gradient-to-r from-secondary via-secondary/60 to-secondary" />
       <div className="mt-2 h-3 w-3/5 animate-shimmer rounded bg-gradient-to-r from-secondary via-secondary/60 to-secondary" />
@@ -360,7 +360,7 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay }}
-      className="group relative overflow-hidden rounded-2xl border border-border bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-elegant)]"
+      className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-6 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-elegant)]"
     >
       <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-[var(--color-accent)]/0 via-[var(--color-accent-2)]/0 to-[var(--color-accent-3)]/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 [mask:linear-gradient(white,white)_content-box,linear-gradient(white,white)] p-px" />
 
@@ -434,7 +434,7 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
           href={repo.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-white px-3.5 py-1.5 text-xs font-medium text-ink hover:bg-secondary"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs font-medium text-ink hover:bg-secondary"
         >
           <Github className="h-3.5 w-3.5" /> Open in GitHub
         </a>
