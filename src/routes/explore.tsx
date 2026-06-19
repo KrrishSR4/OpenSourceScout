@@ -339,13 +339,13 @@ function ExplorePage() {
 function Skeleton() {
   return (
     <div className="rounded-2xl border border-border bg-surface p-6">
-      <div className="h-4 w-1/3 animate-shimmer rounded bg-gradient-to-r from-secondary via-secondary/60 to-secondary" />
-      <div className="mt-3 h-3 w-4/5 animate-shimmer rounded bg-gradient-to-r from-secondary via-secondary/60 to-secondary" />
-      <div className="mt-2 h-3 w-3/5 animate-shimmer rounded bg-gradient-to-r from-secondary via-secondary/60 to-secondary" />
+      <div className="h-4 w-1/3 animate-shimmer rounded bg-secondary" />
+      <div className="mt-3 h-3 w-4/5 animate-shimmer rounded bg-secondary" />
+      <div className="mt-2 h-3 w-3/5 animate-shimmer rounded bg-secondary" />
       <div className="mt-5 flex gap-3">
-        <div className="h-6 w-16 animate-shimmer rounded-full bg-gradient-to-r from-secondary via-secondary/60 to-secondary" />
-        <div className="h-6 w-16 animate-shimmer rounded-full bg-gradient-to-r from-secondary via-secondary/60 to-secondary" />
-        <div className="h-6 w-16 animate-shimmer rounded-full bg-gradient-to-r from-secondary via-secondary/60 to-secondary" />
+        <div className="h-6 w-16 animate-shimmer rounded-full bg-secondary" />
+        <div className="h-6 w-16 animate-shimmer rounded-full bg-secondary" />
+        <div className="h-6 w-16 animate-shimmer rounded-full bg-secondary" />
       </div>
     </div>
   );
@@ -362,7 +362,7 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
       transition={{ duration: 0.45, delay }}
       className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-6 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-elegant)]"
     >
-      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-[var(--color-accent)]/0 via-[var(--color-accent-2)]/0 to-[var(--color-accent-3)]/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 [mask:linear-gradient(white,white)_content-box,linear-gradient(white,white)] p-px" />
+      <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[var(--color-accent)]/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 [mask:linear-gradient(white,white)_content-box,linear-gradient(white,white)] p-px" />
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
@@ -484,7 +484,7 @@ function MetricBar({
           initial={{ width: 0 }}
           animate={{ width: `${Math.min(100, Math.max(0, value))}%` }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="h-full bg-gradient-to-r from-[var(--color-accent)] via-[var(--color-accent-2)] to-[var(--color-accent-3)]"
+          className="h-full bg-[var(--color-accent)]"
         />
       </div>
     </div>
