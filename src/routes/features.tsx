@@ -38,7 +38,7 @@ function Features() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.06 }}
-              className="rounded-2xl border border-border bg-white p-7 hover:-translate-y-0.5 hover:shadow-[var(--shadow-elegant)] transition"
+              className="rounded-2xl border border-border bg-surface p-7 hover:-translate-y-0.5 hover:shadow-[var(--shadow-elegant)] transition"
             >
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-ink"><f.icon className="h-5 w-5" /></div>
               <h3 className="mt-5 text-lg font-semibold text-ink">{f.title}</h3>

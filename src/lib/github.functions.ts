@@ -85,15 +85,17 @@ export const searchRepos = createServerFn({ method: "GET" })
 
     const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(
       q,
-    )}&sort=stars&order=desc&per_page=24`;
+    )}&sort=stars&order=desc&per_page=100`;
 
     const json = (await ghFetch(url)) as { items: GhRepo[] };
     const items = (json.items || []).filter((r) => !r.archived);
 
-    // For top results, fetch good-first-issue counts in parallel (bounded)
-    const top = items.slice(0, 18);
+    // Fetch good-first-issue counts only for the first 24 to stay under rate limit;
+    // the remaining repos still return with derived (estimated) gfi = 0.
+    const top = items.slice(0, 100);
+    const enriched = top.slice(0, 24);
     const counts = await Promise.all(
-      top.map(async (r) => {
+      enriched.map(async (r) => {
         try {
           const issuesUrl = `https://api.github.com/search/issues?q=${encodeURIComponent(
             `repo:${r.full_name} is:issue is:open label:"good first issue"`,
@@ -107,7 +109,7 @@ export const searchRepos = createServerFn({ method: "GET" })
     );
 
     return top.map((r, i) => {
-      const gfi = counts[i];
+      const gfi = i < counts.length ? counts[i] : 0;
       const dayssincePush = daysSince(r.pushed_at);
       const activityScore = clamp(100 - dayssincePush * 1.5);
       const friendlinessScore = clamp(

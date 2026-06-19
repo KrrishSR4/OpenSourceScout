@@ -39,16 +39,16 @@ function Contact() {
             e.preventDefault();
             setSent(true);
           }}
-          className="rounded-3xl border border-border bg-white p-6 shadow-[var(--shadow-elegant)]"
+          className="rounded-3xl border border-border bg-surface p-6 shadow-[var(--shadow-elegant)]"
         >
           <label className="block text-xs uppercase tracking-widest text-muted-foreground">Name</label>
-          <input required className="mt-1 h-11 w-full rounded-xl border border-border bg-secondary/60 px-3 outline-none focus:border-[var(--color-accent)] focus:bg-white" />
+          <input required className="mt-1 h-11 w-full rounded-xl border border-border bg-secondary/60 px-3 outline-none focus:border-[var(--color-accent)] focus:bg-surface" />
 
           <label className="mt-4 block text-xs uppercase tracking-widest text-muted-foreground">Email</label>
-          <input type="email" required className="mt-1 h-11 w-full rounded-xl border border-border bg-secondary/60 px-3 outline-none focus:border-[var(--color-accent)] focus:bg-white" />
+          <input type="email" required className="mt-1 h-11 w-full rounded-xl border border-border bg-secondary/60 px-3 outline-none focus:border-[var(--color-accent)] focus:bg-surface" />
 
           <label className="mt-4 block text-xs uppercase tracking-widest text-muted-foreground">Message</label>
-          <textarea rows={5} required className="mt-1 w-full rounded-xl border border-border bg-secondary/60 p-3 outline-none focus:border-[var(--color-accent)] focus:bg-white" />
+          <textarea rows={5} required className="mt-1 w-full rounded-xl border border-border bg-secondary/60 p-3 outline-none focus:border-[var(--color-accent)] focus:bg-surface" />
 
           <button
             type="submit"
