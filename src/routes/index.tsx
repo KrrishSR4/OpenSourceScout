@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 import { useRef } from "react";
 import {
   Star, GitFork, CircleDot, Sparkles, Activity, Heart, Layers, Gauge,
@@ -44,32 +44,9 @@ function Landing() {
 /* ============================== HERO ============================== */
 function Hero() {
   const ref = useRef<HTMLDivElement>(null);
-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 120]);
-  const rot = useTransform(scrollYProgress, [0, 1], [0, 18]);
 
   return (
-    <section ref={ref} className="relative isolate overflow-hidden pb-32 pt-10 grain">
-      <div className="absolute inset-0 -z-10 grid-bg opacity-60" />
-      <div className="absolute inset-0 -z-10 halo" />
-      <div className="grain-overlay" />
-
-      {/* floating blob */}
-      <motion.div
-        style={{ y: y as unknown as number }}
-        className="pointer-events-none absolute -right-32 top-20 -z-10 h-[520px] w-[520px] animate-blob"
-        // solid color, no linear gradient
-      >
-        <div className="h-full w-full animate-blob opacity-60" style={{ background: "radial-gradient(circle at 30% 30%, var(--color-accent), transparent 70%)" }} />
-      </motion.div>
-      <motion.div
-        style={{ rotate: rot }}
-        className="pointer-events-none absolute -left-40 bottom-0 -z-10 h-[420px] w-[420px] rounded-full"
-        // solid color, no linear gradient
-      >
-        <div className="h-full w-full rounded-full opacity-40" style={{ background: "radial-gradient(circle at 60% 40%, var(--color-accent-3), transparent 65%)" }} />
-      </motion.div>
-
+    <section ref={ref} className="relative isolate overflow-hidden bg-background pb-32 pt-10">
       <div className="mx-auto max-w-7xl px-6 pt-10">
         {/* sticker row */}
         <motion.div

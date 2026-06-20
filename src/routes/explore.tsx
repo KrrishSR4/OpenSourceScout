@@ -17,6 +17,8 @@ import {
   Gauge,
   Loader2,
   Clock,
+  Users,
+  Swords,
 } from "lucide-react";
 import { Shell } from "@/components/site/Shell";
 import { LANGUAGES, FRAMEWORKS } from "@/lib/frameworks";
@@ -41,6 +43,7 @@ function ExplorePage() {
   const [framework, setFramework] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<string>("");
+  const [competition, setCompetition] = useState<"all" | "Low" | "Medium" | "High">("all");
 
   const callSearch = useServerFn(searchRepos);
   const mutation = useMutation({
@@ -195,7 +198,8 @@ function ExplorePage() {
               <button
                 onClick={onSearch}
                 disabled={!language || mutation.isPending}
-                className="group inline-flex h-14 items-center justify-center gap-2 rounded-2xl bg-ink px-6 text-sm font-medium text-white transition-transform hover:scale-[1.02] disabled:opacity-50"
+                className="group inline-flex h-14 items-center justify-center gap-2 rounded-2xl border-2 border-ink bg-[var(--color-accent)] px-6 text-sm font-bold text-[var(--color-background)] transition-all hover:-translate-y-0.5 disabled:opacity-50"
+                style={{ boxShadow: "4px 4px 0 0 var(--color-ink)" }}
               >
                 {mutation.isPending ? (
                   <>
@@ -220,7 +224,7 @@ function ExplorePage() {
                   onClick={() => pickLanguage(l.name, l.key)}
                   className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition ${
                     language === l.key
-                      ? "border-ink bg-ink text-white"
+                      ? "border-ink bg-ink text-[var(--color-background)]"
                       : "border-border bg-surface text-muted-foreground hover:text-ink"
                   }`}
                 >
@@ -281,25 +285,68 @@ function ExplorePage() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4 }}
             >
-              {mutation.data.length === 0 ? (
+              {(() => {
+                const all = mutation.data;
+                const filtered = competition === "all" ? all : all.filter((r) => r.competition === competition);
+                const counts = {
+                  all: all.length,
+                  Low: all.filter((r) => r.competition === "Low").length,
+                  Medium: all.filter((r) => r.competition === "Medium").length,
+                  High: all.filter((r) => r.competition === "High").length,
+                };
+                return all.length === 0 ? (
                 <div className="rounded-2xl border border-border bg-surface p-10 text-center text-muted-foreground">
                   No repositories matched. Try removing the framework, or pick a different language.
                 </div>
               ) : (
                 <>
-                  <div className="mb-4 flex items-center justify-between">
+                  <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
                     <h2 className="font-display text-2xl text-ink">
-                      {mutation.data.length} curated repositories
+                      {filtered.length} of {all.length} repositories
                     </h2>
                     <span className="text-xs text-muted-foreground">Sorted by stars · live data</span>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {mutation.data.map((r, i) => (
-                      <RepoCard key={r.id} repo={r} delay={i * 0.04} />
-                    ))}
+                  <div className="mb-6 flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                      <Swords className="h-3 w-3" /> Competition
+                    </span>
+                    {(["all", "Low", "Medium", "High"] as const).map((c) => {
+                      const active = competition === c;
+                      const dot =
+                        c === "Low" ? "var(--color-accent-2)" :
+                        c === "Medium" ? "var(--color-accent)" :
+                        c === "High" ? "var(--color-accent-3)" : "var(--color-muted-foreground)";
+                      return (
+                        <button
+                          key={c}
+                          onClick={() => setCompetition(c)}
+                          className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-xs font-semibold transition-all ${
+                            active
+                              ? "border-ink bg-ink text-[var(--color-background)]"
+                              : "border-border bg-surface text-muted-foreground hover:border-ink hover:text-ink"
+                          }`}
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} />
+                          {c === "all" ? "All" : c}
+                          <span className="font-mono text-[10px] opacity-70">{counts[c]}</span>
+                        </button>
+                      );
+                    })}
                   </div>
+                  {filtered.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">
+                      No repositories at this competition level. Try another filter.
+                    </div>
+                  ) : (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {filtered.map((r, i) => (
+                        <RepoCard key={r.id} repo={r} delay={i * 0.04} />
+                      ))}
+                    </div>
+                  )}
                 </>
-              )}
+                );
+              })()}
             </motion.div>
           )}
 
@@ -386,6 +433,7 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5" />{compact(repo.stars)}</span>
         <span className="inline-flex items-center gap-1"><GitFork className="h-3.5 w-3.5" />{compact(repo.forks)}</span>
+        <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5 text-[var(--color-accent-4)]" />{compact(repo.contributors)} contributors</span>
         <span className="inline-flex items-center gap-1"><CircleDot className="h-3.5 w-3.5 text-emerald-500" />{repo.openIssues} open</span>
         <span className="inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5 text-[var(--color-accent-2)]" />{repo.goodFirstIssues} GFI</span>
         {repo.language && (
@@ -394,6 +442,13 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
           </span>
         )}
         <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" />Updated {days}d ago</span>
+      </div>
+
+      <div className="mt-3 flex items-center gap-2">
+        <CompetitionBadge level={repo.competition} />
+        <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          competition · based on contributor count
+        </span>
       </div>
 
       <div className="mt-5 grid grid-cols-3 gap-3">
@@ -426,7 +481,7 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
           href={repo.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-xs font-medium text-white transition-transform hover:scale-[1.02]"
+          className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-1.5 text-xs font-medium text-[var(--color-background)] transition-transform hover:scale-[1.02]"
         >
           <ExternalLink className="h-3.5 w-3.5" /> Visit Repository
         </a>
@@ -452,14 +507,31 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
 }
 
 function DifficultyBadge({ level }: { level: Repo["difficulty"] }) {
-  const map = {
-    Beginner: "bg-emerald-100 text-emerald-700",
-    Intermediate: "bg-amber-100 text-amber-700",
-    Advanced: "bg-rose-100 text-rose-700",
-  } as const;
+  const color =
+    level === "Beginner" ? "var(--color-accent-2)" :
+    level === "Intermediate" ? "var(--color-accent)" :
+    "var(--color-accent-3)";
   return (
-    <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${map[level]}`}>
+    <span
+      className="shrink-0 rounded-full border-2 border-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--color-background)]"
+      style={{ background: color }}
+    >
       {level}
+    </span>
+  );
+}
+
+function CompetitionBadge({ level }: { level: Repo["competition"] }) {
+  const color =
+    level === "Low" ? "var(--color-accent-2)" :
+    level === "Medium" ? "var(--color-accent)" :
+    "var(--color-accent-3)";
+  return (
+    <span
+      className="inline-flex items-center gap-1 rounded-full border border-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--color-background)]"
+      style={{ background: color }}
+    >
+      <Swords className="h-3 w-3" /> {level}
     </span>
   );
 }
