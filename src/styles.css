@@ -48,27 +48,27 @@
 :root {
   --radius: 0.875rem;
 
-  /* deep warm ink — avoids whites entirely */
-  --background: oklch(0.14 0.025 35);        /* near-black with warm undertone */
-  --surface:    oklch(0.18 0.03  35);        /* card / panel */
-  --foreground: oklch(0.95 0.03  85);        /* warm cream */
-  --ink:        oklch(0.97 0.03  85);        /* primary text on dark */
+  /* pure black canvas — high-contrast maximalism */
+  --background: oklch(0 0 0);                /* pure black */
+  --surface:    oklch(0.16 0.025 35);        /* card / panel */
+  --foreground: oklch(0.96 0.03  85);        /* warm cream */
+  --ink:        oklch(0.98 0.03  85);        /* primary text on dark */
 
-  --card: oklch(0.18 0.03 35);
+  --card: oklch(0.16 0.025 35);
   --card-foreground: var(--foreground);
-  --popover: oklch(0.18 0.03 35);
+  --popover: oklch(0.16 0.025 35);
   --popover-foreground: var(--foreground);
 
   --primary: oklch(0.82 0.19 75);            /* electric amber */
-  --primary-foreground: oklch(0.14 0.025 35);
-  --secondary: oklch(0.22 0.035 35);
+  --primary-foreground: oklch(0 0 0);
+  --secondary: oklch(0.20 0.03 35);
   --secondary-foreground: var(--ink);
 
-  --muted: oklch(0.22 0.03 35);
-  --muted-foreground: oklch(0.72 0.04 75);
+  --muted: oklch(0.20 0.03 35);
+  --muted-foreground: oklch(0.78 0.04 75);
 
   --accent:    oklch(0.78 0.22 35);          /* hot vermilion */
-  --accent-foreground: oklch(0.14 0.025 35);
+  --accent-foreground: oklch(0 0 0);
   --accent-2:  oklch(0.86 0.21 130);         /* acid lime */
   --accent-3:  oklch(0.74 0.20 330);         /* hot magenta */
   --accent-4:  oklch(0.78 0.15 220);         /* electric sky */
@@ -76,8 +76,8 @@
   --destructive: oklch(0.65 0.24 27);
   --destructive-foreground: oklch(0.99 0 0);
 
-  --border: oklch(0.28 0.03 35);
-  --input:  oklch(0.28 0.03 35);
+  --border: oklch(0.26 0.03 35);
+  --input:  oklch(0.26 0.03 35);
   --ring:   oklch(0.82 0.19 75);
 }
 
@@ -119,6 +119,8 @@
 
 /* conic chroma text — replaces all linear gradient text */
 @utility chroma-text {
+  /* fallback color so text is visible even if background-clip:text fails */
+  color: var(--color-accent);
   background: conic-gradient(
     from 210deg at 50% 50%,
     var(--color-accent) 0deg,
@@ -129,14 +131,15 @@
   );
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
+  -webkit-text-fill-color: transparent;
   animation: hue-spin 14s linear infinite;
 }
 @utility gradient-text { /* legacy alias used in older files */
+  color: var(--color-accent);
   background: conic-gradient(from 210deg, var(--color-accent), var(--color-accent-3), var(--color-accent-4), var(--color-accent-2), var(--color-accent));
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
 @utility glass {

@@ -10,6 +10,8 @@ export type Repo = {
   forks: number;
   openIssues: number;
   goodFirstIssues: number;
+  contributors: number;
+  competition: "Low" | "Medium" | "High";
   language: string | null;
   updatedAt: string;
   pushedAt: string;
@@ -63,6 +65,26 @@ async function ghFetch(url: string) {
   return res.json();
 }
 
+// Reads the GitHub `Link` header to extract the last-page number from a
+// `?per_page=1` request — a cheap way to get a total count.
+async function ghCount(url: string): Promise<number> {
+  const headers: Record<string, string> = {
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "opensource-scout",
+  };
+  const token = process.env.GITHUB_TOKEN;
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(url, { headers });
+  if (!res.ok) return 0;
+  const link = res.headers.get("link") || "";
+  const m = link.match(/[?&]page=(\d+)>;\s*rel="last"/);
+  if (m) return Number(m[1]);
+  // No pagination header → 0 or 1 result
+  const body = (await res.json().catch(() => [])) as unknown[];
+  return Array.isArray(body) ? body.length : 0;
+}
+
 export const searchRepos = createServerFn({ method: "GET" })
   .inputValidator((d: { language: string; framework: string }) => ({
     language: String(d.language || "").slice(0, 40),
@@ -94,22 +116,42 @@ export const searchRepos = createServerFn({ method: "GET" })
     // the remaining repos still return with derived (estimated) gfi = 0.
     const top = items.slice(0, 100);
     const enriched = top.slice(0, 24);
-    const counts = await Promise.all(
-      enriched.map(async (r) => {
-        try {
-          const issuesUrl = `https://api.github.com/search/issues?q=${encodeURIComponent(
-            `repo:${r.full_name} is:issue is:open label:"good first issue"`,
-          )}&per_page=1`;
-          const j = (await ghFetch(issuesUrl)) as { total_count: number };
-          return j.total_count ?? 0;
-        } catch {
-          return 0;
-        }
-      }),
-    );
+    const [counts, contribCounts] = await Promise.all([
+      Promise.all(
+        enriched.map(async (r) => {
+          try {
+            const issuesUrl = `https://api.github.com/search/issues?q=${encodeURIComponent(
+              `repo:${r.full_name} is:issue is:open label:"good first issue"`,
+            )}&per_page=1`;
+            const j = (await ghFetch(issuesUrl)) as { total_count: number };
+            return j.total_count ?? 0;
+          } catch {
+            return 0;
+          }
+        }),
+      ),
+      Promise.all(
+        enriched.map(async (r) => {
+          try {
+            const url = `https://api.github.com/repos/${r.full_name}/contributors?per_page=1&anon=true`;
+            return await ghCount(url);
+          } catch {
+            return 0;
+          }
+        }),
+      ),
+    ]);
 
     return top.map((r, i) => {
       const gfi = i < counts.length ? counts[i] : 0;
+      // For repos beyond the enriched window, estimate contributors from forks
+      // (a rough proxy) so the filter still has signal across all 100.
+      const contributors =
+        i < contribCounts.length
+          ? contribCounts[i]
+          : Math.max(1, Math.round(Math.log10(Math.max(1, r.forks_count)) * 40));
+      const competition: Repo["competition"] =
+        contributors < 30 ? "Low" : contributors < 150 ? "Medium" : "High";
       const dayssincePush = daysSince(r.pushed_at);
       const activityScore = clamp(100 - dayssincePush * 1.5);
       const friendlinessScore = clamp(
@@ -134,6 +176,8 @@ export const searchRepos = createServerFn({ method: "GET" })
         forks: r.forks_count,
         openIssues: r.open_issues_count,
         goodFirstIssues: gfi,
+        contributors,
+        competition,
         language: r.language,
         updatedAt: r.updated_at,
         pushedAt: r.pushed_at,
