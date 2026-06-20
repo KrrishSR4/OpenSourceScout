@@ -2,12 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Shell } from "@/components/site/Shell";
 
 export const Route = createFileRoute("/about")({
-  head: () => ({
-    meta: [
-      { title: "About · OpenSource Scout" },
-      { name: "description", content: "Why we built OpenSource Scout and who it's for." },
-    ],
-  }),
   component: About,
 });
 

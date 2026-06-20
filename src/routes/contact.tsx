@@ -4,12 +4,6 @@ import { useState } from "react";
 import { Mail, Github, Send, Check } from "lucide-react";
 
 export const Route = createFileRoute("/contact")({
-  head: () => ({
-    meta: [
-      { title: "Contact · OpenSource Scout" },
-      { name: "description", content: "Get in touch with the OpenSource Scout team." },
-    ],
-  }),
   component: Contact,
 });
 

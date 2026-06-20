@@ -8,21 +8,6 @@ import {
 import { Shell } from "@/components/site/Shell";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "OpenSource Scout — Discover repos worth contributing to" },
-      {
-        name: "description",
-        content:
-          "Find high-quality GitHub repositories, good-first-issues, and active communities — tailored to your stack.",
-      },
-      { property: "og:title", content: "OpenSource Scout" },
-      {
-        property: "og:description",
-        content: "Discover the best GitHub repositories to contribute to.",
-      },
-    ],
-  }),
   component: Landing,
 });
 

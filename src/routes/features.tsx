@@ -4,12 +4,6 @@ import { motion } from "framer-motion";
 import { Activity, Gauge, Heart, Layers, Search, Sparkles, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/features")({
-  head: () => ({
-    meta: [
-      { title: "Features · OpenSource Scout" },
-      { name: "description", content: "Every signal we surface to help you contribute to open source." },
-    ],
-  }),
   component: Features,
 });
 

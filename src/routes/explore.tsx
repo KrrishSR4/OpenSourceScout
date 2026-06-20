@@ -25,15 +25,6 @@ import { LANGUAGES, FRAMEWORKS } from "@/lib/frameworks";
 import { searchRepos, type Repo } from "@/lib/github.functions";
 
 export const Route = createFileRoute("/explore")({
-  head: () => ({
-    meta: [
-      { title: "Explore Repositories · OpenSource Scout" },
-      {
-        name: "description",
-        content: "Search curated GitHub repositories by language and framework.",
-      },
-    ],
-  }),
   component: ExplorePage,
 });
 
