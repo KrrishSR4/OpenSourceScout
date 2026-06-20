@@ -9,34 +9,35 @@ export function Footer() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[var(--color-accent)]" />
 
       {/* big wordmark — SVG so it always spans the full footer width */}
-      <div className="w-full px-6 pt-14">
-        <motion.svg
-          viewBox="0 0 1000 150"
+      <motion.div
+        className="w-full px-6 pt-14"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <svg
+          viewBox="0 0 1000 160"
           preserveAspectRatio="xMidYMid meet"
-          className="block w-full select-none overflow-visible"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.3 }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          className="chroma-text block w-full select-none overflow-visible"
+          aria-label="OpenSource Scout"
         >
           <text
             x="500"
-            y="120"
+            y="130"
             textAnchor="middle"
-            textLength="1000"
+            textLength="980"
             lengthAdjust="spacingAndGlyphs"
             fontFamily="Fraunces, serif"
             fontWeight={500}
             fontSize={150}
-            letterSpacing="-6"
             fill="currentColor"
-            className="chroma-text"
             fontStyle="italic"
           >
             OpenSource Scout
           </text>
-        </motion.svg>
-      </div>
+        </svg>
+      </motion.div>
 
       <div className="relative mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
         <div className="md:col-span-2">
