@@ -20,8 +20,9 @@ export function Footer() {
           transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
         >
           <text
-            x="0"
-            y="125"
+            x="500"
+            y="120"
+            textAnchor="middle"
             textLength="1000"
             lengthAdjust="spacingAndGlyphs"
             fontFamily="Fraunces, serif"
@@ -29,12 +30,10 @@ export function Footer() {
             fontSize={150}
             letterSpacing="-6"
             fill="currentColor"
-            className="text-ink"
+            className="chroma-text"
+            fontStyle="italic"
           >
-            OpenSource{" "}
-            <tspan fontStyle="italic" className="chroma-text" fill="currentColor">
-              Scout
-            </tspan>
+            OpenSource Scout
           </text>
         </motion.svg>
       </div>
