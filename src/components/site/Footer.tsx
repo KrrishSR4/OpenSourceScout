@@ -7,10 +7,10 @@ export function Footer() {
       <div className="pointer-events-none absolute inset-0 -z-0 halo opacity-30" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[var(--color-accent)]" />
 
-      {/* big wordmark — single line */}
-      <div className="mx-auto max-w-7xl overflow-hidden px-6 pt-14">
-        <div className="whitespace-nowrap font-display font-medium leading-[0.85] tracking-[-0.05em] text-ink/90" style={{ fontSize: "clamp(2rem, 11.5vw, 10rem)" }}>
-          OpenSource <span className="chroma-text italic">Scout</span>
+      {/* big wordmark — single line, fits the container */}
+      <div className="mx-auto max-w-7xl px-6 pt-14">
+        <div className="flex w-full items-baseline whitespace-nowrap font-display font-medium leading-[0.85] tracking-[-0.05em] text-ink/90" style={{ fontSize: "clamp(2rem, 8.4vw, 7.5rem)" }}>
+          OpenSource&nbsp;<span className="chroma-text italic">Scout</span>
         </div>
       </div>
 
