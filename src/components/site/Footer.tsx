@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Compass, Github, Twitter, Globe } from "lucide-react";
+import { motion } from "framer-motion";
 
 export function Footer() {
   return (
@@ -7,12 +8,36 @@ export function Footer() {
       <div className="pointer-events-none absolute inset-0 -z-0 halo opacity-30" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[var(--color-accent)]" />
 
-      {/* big wordmark — single line, fits the container */}
-      <div className="mx-auto max-w-7xl px-6 pt-14">
-        <div className="flex w-full items-baseline whitespace-nowrap font-display font-medium leading-[0.85] tracking-[-0.05em] text-ink/90" style={{ fontSize: "clamp(2rem, 8.4vw, 7.5rem)" }}>
-          OpenSource&nbsp;<span className="chroma-text italic">Scout</span>
-        </div>
-      </div>
+      {/* big wordmark — SVG so it always spans the full footer width */}
+      <motion.div
+        className="w-full px-6 pt-14"
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <svg
+          viewBox="0 0 1000 160"
+          preserveAspectRatio="xMidYMid meet"
+          className="chroma-text block w-full select-none overflow-visible"
+          aria-label="OpenSource Scout"
+        >
+          <text
+            x="500"
+            y="130"
+            textAnchor="middle"
+            textLength="980"
+            lengthAdjust="spacingAndGlyphs"
+            fontFamily="Fraunces, serif"
+            fontWeight={500}
+            fontSize={150}
+            fill="currentColor"
+            fontStyle="italic"
+          >
+            OpenSource Scout
+          </text>
+        </svg>
+      </motion.div>
 
       <div className="relative mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
         <div className="md:col-span-2">

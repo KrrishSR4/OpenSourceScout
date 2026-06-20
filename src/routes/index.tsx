@@ -341,13 +341,15 @@ function FeatureSlab() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.06 }}
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ y: -4 }}
               className="group relative flex h-56 flex-col justify-between border-b border-r border-ink p-6 [&:nth-child(3n)]:border-r-0 [&:nth-last-child(-n+3)]:border-b-0"
             >
-              <div
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                style={{ background: `radial-gradient(circle at 30% 20%, ${f.c}, transparent 65%)`, mixBlendMode: "screen" }}
-              />
+              <span
+                className="pointer-events-none absolute right-4 top-4 origin-top-right scale-0 rounded-full border border-ink bg-background px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest opacity-0 shadow-[3px_3px_0_0_var(--color-ink)] transition-all duration-300 group-hover:scale-100 group-hover:opacity-100"
+                style={{ color: f.c }}
+              >
+                live ✦
+              </span>
               <f.icon className="h-7 w-7 transition-transform group-hover:rotate-12 group-hover:scale-125" style={{ color: f.c }} strokeWidth={2.2} />
               <div>
                 <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">0{i + 1}</div>
@@ -393,14 +395,16 @@ function RepoShowcase() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.08 }}
-            whileHover={{ y: -6, rotate: i % 2 === 0 ? -0.6 : 0.6 }}
-            className="group relative overflow-hidden rounded-3xl border-2 border-ink bg-surface p-7"
+            whileHover={{ y: -6 }}
+            className="group relative overflow-hidden rounded-3xl border-2 border-ink bg-surface p-7 transition-shadow"
             style={{ boxShadow: "6px 6px 0 0 var(--color-ink)" }}
           >
-            <div
-              className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full opacity-30 transition-opacity group-hover:opacity-70"
-              style={{ background: `radial-gradient(circle, ${r.color} 0%, transparent 70%)` }}
-            />
+            <span
+              className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2 scale-90 rounded-full border border-ink bg-background px-3 py-1 font-mono text-[10px] uppercase tracking-widest opacity-0 shadow-[3px_3px_0_0_var(--color-ink)] transition-all duration-300 group-hover:-translate-y-1 group-hover:scale-100 group-hover:opacity-100"
+              style={{ color: r.color }}
+            >
+              ✦ open on github
+            </span>
             <div className="relative flex items-start justify-between">
               <div>
                 <div className="font-mono text-sm text-muted-foreground">github.com/</div>
