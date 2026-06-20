@@ -118,29 +118,23 @@
   letter-spacing: -0.02em;
 }
 
-/* conic chroma text — replaces all linear gradient text */
+/* solid, animated accent text — always visible on dark canvas */
 @utility chroma-text {
-  /* fallback color so text is visible even if background-clip:text fails */
   color: var(--color-accent);
-  background: conic-gradient(
-    from 210deg at 50% 50%,
-    var(--color-accent) 0deg,
-    var(--color-accent-3) 90deg,
-    var(--color-accent-4) 180deg,
-    var(--color-accent-2) 270deg,
-    var(--color-accent) 360deg
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: hue-spin 14s linear infinite;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  animation: chroma-cycle 7s ease-in-out infinite;
 }
-@utility gradient-text { /* legacy alias used in older files */
+@utility gradient-text {
   color: var(--color-accent);
-  background: conic-gradient(from 210deg, var(--color-accent), var(--color-accent-3), var(--color-accent-4), var(--color-accent-2), var(--color-accent));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-text-fill-color: currentColor;
+  background: none;
+  animation: chroma-cycle 7s ease-in-out infinite;
+}
+@keyframes chroma-cycle {
+  0%, 100% { color: var(--color-accent); }
+  33%      { color: var(--color-accent-2); }
+  66%      { color: var(--color-accent-3); }
 }
 
 @utility glass {
