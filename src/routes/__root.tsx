@@ -83,13 +83,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Discover high-quality GitHub repositories, beginner-friendly issues, and active communities tailored to your tech stack.",
       },
-      { property: "og:title", content: "OpenSource Scout" },
+      { property: "og:title", content: "OpenSource Scout — Find your next open source contribution" },
       {
         property: "og:description",
         content: "Discover the best GitHub repositories to contribute to, tailored to your stack.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "OpenSource Scout — Find your next open source contribution" },
+      { name: "description", content: "OpenSource Scout helps developers find their next GitHub contribution based on language and framework." },
+      { property: "og:description", content: "OpenSource Scout helps developers find their next GitHub contribution based on language and framework." },
+      { name: "twitter:description", content: "OpenSource Scout helps developers find their next GitHub contribution based on language and framework." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0c59e1f3-9e70-41e8-ba1a-4a4678d29c14/id-preview-5ba4cf6a--15707487-1f1f-41e2-bc71-f5be9f2dba77.lovable.app-1781963539708.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0c59e1f3-9e70-41e8-ba1a-4a4678d29c14/id-preview-5ba4cf6a--15707487-1f1f-41e2-bc71-f5be9f2dba77.lovable.app-1781963539708.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
