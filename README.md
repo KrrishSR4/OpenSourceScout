@@ -73,11 +73,11 @@ $$\text{Activity} = 100 - (\text{Days since last push} \times 1.5)$$
 *(Clamped between 0 and 100. Lower pushes mean a decaying score).*
 
 ### 2. Friendliness Score
-$$\text{Friendliness} = 40 + (\log_{10}(\max(1, \text{GFI Count})) \times 25) + (\text{has\_issues} ? 10 : 0)$$
+$$\text{Friendliness} = 40 + (\log_{10}(\max(1, \text{GFI Count})) \times 25) + (\text{hasIssues} ? 10 : 0)$$
 *(Clamped between 0 and 100. Measures density of beginner-friendly entry doors).*
 
 ### 3. Difficulty Onboarding
-$$\text{Raw Diff} = \log_{10}(\text{stars}) \times 14 + \log_{10}(\text{open\_issues}) \times 8 - \log_{10}(\text{GFI Count}) \times 10$$
+$$\text{Raw Diff} = \log_{10}(\text{stars}) \times 14 + \log_{10}(\text{openIssues}) \times 8 - \log_{10}(\text{GFI Count}) \times 10$$
 - $\text{Raw Diff} < 40 \implies$ **Beginner**
 - $\text{Raw Diff} < 70 \implies$ **Intermediate**
 - $\text{Otherwise} \implies$ **Advanced**
