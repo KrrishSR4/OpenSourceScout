@@ -124,105 +124,53 @@ export function AnimatedBackground() {
         />
       </svg>
 
-      {/* 3. Central "Scout Radar" Compass System (Behind Hero / Search Area) */}
-      <div className="absolute left-1/2 top-[35%] -translate-x-1/2 -translate-y-1/2 w-[450px] sm:w-[600px] h-[450px] sm:h-[600px] opacity-25 flex justify-center items-center">
-        <svg className="w-full h-full text-foreground/40" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-          {/* Radar Grid - Outer Solid Ring */}
-          <circle cx="250" cy="250" r="220" stroke="currentColor" strokeWidth="1" strokeOpacity="0.2" />
+      {/* 3. Centered Git Commit Branch Timeline (Thematic developer graphic) */}
+      <div className="absolute left-1/2 top-[35%] -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[600px] h-[100px] opacity-25 flex justify-center items-center">
+        <svg className="w-full h-full text-foreground/40" viewBox="0 0 600 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          {/* Main trunk line */}
+          <line x1="50" y1="50" x2="550" y2="50" stroke="currentColor" strokeWidth="1.5" strokeDasharray="5 5" strokeOpacity="0.4" />
           
-          {/* Radar Grid - Middle Dashed Ring */}
-          <circle cx="250" cy="250" r="160" stroke="currentColor" strokeWidth="1.5" strokeDasharray="6 8" strokeOpacity="0.4" />
+          {/* Branch line */}
+          <path d="M 200,50 Q 250,15 300,15 Q 350,15 400,50" stroke="var(--color-accent-3)" strokeWidth="1.5" strokeDasharray="3 3" strokeOpacity="0.6" />
           
-          {/* Radar Grid - Inner Ticks Ring */}
-          <circle cx="250" cy="250" r="100" stroke="currentColor" strokeWidth="1" strokeDasharray="2 4" strokeOpacity="0.3" />
-          
-          {/* Core Pulsing Sonar Node */}
-          <motion.circle
-            cx="250"
-            cy="250"
-            r="12"
-            fill="var(--color-accent-2)"
-            animate={{
-              r: [12, 18, 12],
-              fillOpacity: [0.6, 0.9, 0.6],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+          {/* Commit Node 1: Initial Commit */}
+          <circle cx="150" cy="50" r="5" fill="var(--color-accent-4)" />
+          <motion.circle 
+            cx="150" 
+            cy="50" 
+            r="10" 
+            stroke="var(--color-accent-4)" 
+            strokeWidth="1" 
+            animate={{ scale: [1, 2, 1], opacity: [0.7, 0, 0.7] }} 
+            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }} 
           />
+          <text x="110" y="72" fill="currentColor" opacity="0.4" fontSize="8" fontFamily="var(--font-mono)">initial_commit</text>
 
-          {/* Sonar Pulse Wave 1 */}
-          <motion.circle
-            cx="250"
-            cy="250"
-            r="40"
-            stroke="var(--color-accent-2)"
-            strokeWidth="1.5"
-            initial={{ r: 20, opacity: 0.8 }}
-            animate={{
-              r: [20, 200],
-              opacity: [0.8, 0],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeOut",
-            }}
+          {/* Commit Node 2: Feature Branch commit */}
+          <circle cx="300" cy="15" r="5" fill="var(--color-accent)" />
+          <motion.circle 
+            cx="300" 
+            cy="15" 
+            r="10" 
+            stroke="var(--color-accent)" 
+            strokeWidth="1" 
+            animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }} 
+            transition={{ repeat: Infinity, duration: 2.5, delay: 0.5, ease: "easeInOut" }} 
           />
+          <text x="260" y="32" fill="currentColor" opacity="0.4" fontSize="8" fontFamily="var(--font-mono)">feature/explore</text>
 
-          {/* Sonar Pulse Wave 2 */}
-          <motion.circle
-            cx="250"
-            cy="250"
-            r="40"
-            stroke="var(--color-accent-4)"
-            strokeWidth="1.2"
-            initial={{ r: 20, opacity: 0.8 }}
-            animate={{
-              r: [20, 200],
-              opacity: [0.8, 0],
-            }}
-            transition={{
-              duration: 4,
-              delay: 2,
-              repeat: Infinity,
-              ease: "easeOut",
-            }}
+          {/* Commit Node 3: HEAD -> main */}
+          <circle cx="450" cy="50" r="6" fill="var(--color-accent-2)" />
+          <motion.circle 
+            cx="450" 
+            cy="50" 
+            r="12" 
+            stroke="var(--color-accent-2)" 
+            strokeWidth="1" 
+            animate={{ scale: [1, 2.2, 1], opacity: [0.8, 0, 0.8] }} 
+            transition={{ repeat: Infinity, duration: 3.5, delay: 1, ease: "easeInOut" }} 
           />
-
-          {/* Crosshair (Horizontal & Vertical Axes) */}
-          <line x1="250" y1="20" x2="250" y2="480" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 4" strokeOpacity="0.2" />
-          <line x1="20" y1="250" x2="480" y2="250" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 4" strokeOpacity="0.2" />
-
-          {/* Center Coordinates & Degree Markers */}
-          <text x="260" y="90" fill="currentColor" opacity="0.4" fontSize="8" fontFamily="var(--font-mono)">LAT: 47.6062</text>
-          <text x="260" y="420" fill="currentColor" opacity="0.4" fontSize="8" fontFamily="var(--font-mono)">LNG: -122.3321</text>
-          <text x="50" y="245" fill="currentColor" opacity="0.3" fontSize="8" fontFamily="var(--font-mono)">SYS_SCAN_ACTIVE</text>
-
-          {/* Rotating Target Sweeper (Radar Sweep line) */}
-          <motion.g
-            style={{ originX: "250px", originY: "250px" }}
-            animate={{ rotate: 360 }}
-            transition={{
-              repeat: Infinity,
-              duration: 12,
-              ease: "linear",
-            }}
-          >
-            {/* The sweeping gradient line */}
-            <line x1="250" y1="250" x2="250" y2="30" stroke="var(--color-accent-2)" strokeWidth="2.5" strokeOpacity="0.8" />
-            <polygon points="250,250 250,30 200,35" fill="url(#sweep-grad)" opacity="0.25" />
-          </motion.g>
-
-          {/* Sweeper Gradient definitions */}
-          <defs>
-            <radialGradient id="sweep-grad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="var(--color-accent-2)" stopOpacity="1" />
-              <stop offset="100%" stopColor="var(--color-accent-2)" stopOpacity="0" />
-            </radialGradient>
-          </defs>
+          <text x="415" y="72" fill="currentColor" opacity="0.4" fontSize="8" fontFamily="var(--font-mono)">{"HEAD -> main"}</text>
         </svg>
       </div>
 
