@@ -31,7 +31,7 @@ function Hero() {
   const ref = useRef<HTMLDivElement>(null);
 
   return (
-    <section ref={ref} className="relative isolate overflow-hidden bg-background pb-32 pt-10">
+    <section ref={ref} className="relative isolate overflow-hidden bg-transparent pb-32 pt-10">
       <div className="mx-auto max-w-7xl px-6 pt-10">
         {/* sticker row */}
         <motion.div
