@@ -1,4 +1,4 @@
-# OpenSource Scout
+# OpenSourceScout
 
 > **Discover the best open-source repositories to contribute to based on your programming language, framework, skill level, and contribution goals.**
 
