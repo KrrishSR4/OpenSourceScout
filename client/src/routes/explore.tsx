@@ -86,7 +86,7 @@ function ExplorePage() {
 
   return (
     <Shell>
-      <section className="relative isolate overflow-hidden">
+      <section className="relative isolate overflow-x-clip">
         <div className="absolute inset-0 -z-10 grid-bg" />
         <div className="absolute inset-0 -z-10 halo opacity-60" />
 
