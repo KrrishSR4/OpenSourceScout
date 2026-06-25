@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   ChevronDown,
@@ -66,6 +66,10 @@ function ExplorePage() {
     );
     return exact?.key ?? null;
   }, [languageInput]);
+
+  useEffect(() => {
+    setLanguage(langKey);
+  }, [langKey]);
 
   const frameworks = langKey ? FRAMEWORKS[langKey] ?? [] : [];
 
