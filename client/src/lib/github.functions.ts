@@ -23,68 +23,6 @@ export type Repo = {
   owner: { login: string; avatar: string };
 };
 
-type GhRepo = {
-  id: number;
-  name: string;
-  full_name: string;
-  description: string | null;
-  html_url: string;
-  stargazers_count: number;
-  forks_count: number;
-  open_issues_count: number;
-  language: string | null;
-  updated_at: string;
-  pushed_at: string;
-  topics?: string[];
-  has_issues: boolean;
-  archived: boolean;
-  owner: { login: string; avatar_url: string };
-};
-
-function clamp(n: number, min = 0, max = 100) {
-  return Math.max(min, Math.min(max, n));
-}
-
-function daysSince(iso: string) {
-  return (Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24);
-}
-
-async function ghFetch(url: string) {
-  const headers: Record<string, string> = {
-    Accept: "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "opensource-scout",
-  };
-  const token = process.env.GITHUB_TOKEN;
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(url, { headers });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`GitHub ${res.status}: ${text.slice(0, 180)}`);
-  }
-  return res.json();
-}
-
-// Reads the GitHub `Link` header to extract the last-page number from a
-// `?per_page=1` request — a cheap way to get a total count.
-async function ghCount(url: string): Promise<number> {
-  const headers: Record<string, string> = {
-    Accept: "application/vnd.github+json",
-    "X-GitHub-Api-Version": "2022-11-28",
-    "User-Agent": "opensource-scout",
-  };
-  const token = process.env.GITHUB_TOKEN;
-  if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(url, { headers });
-  if (!res.ok) return 0;
-  const link = res.headers.get("link") || "";
-  const m = link.match(/[?&]page=(\d+)>;\s*rel="last"/);
-  if (m) return Number(m[1]);
-  // No pagination header → 0 or 1 result
-  const body = (await res.json().catch(() => [])) as unknown[];
-  return Array.isArray(body) ? body.length : 0;
-}
-
 export const searchRepos = createServerFn({ method: "GET" })
   .inputValidator((d: { language: string; framework: string }) => ({
     language: String(d.language || "").slice(0, 40),
@@ -94,99 +32,16 @@ export const searchRepos = createServerFn({ method: "GET" })
     const { language, framework } = data;
     if (!language) return [];
 
-    const q = [
-      framework ? `topic:${framework.toLowerCase()}` : "",
-      `language:${language}`,
-      "stars:>200",
-      "archived:false",
-      "is:public",
-      "good-first-issues:>0",
-    ]
-      .filter(Boolean)
-      .join(" ");
+    const url = `/api/v1/repositories?language=${encodeURIComponent(
+      language,
+    )}&framework=${encodeURIComponent(framework || "")}`;
 
-    const url = `https://api.github.com/search/repositories?q=${encodeURIComponent(
-      q,
-    )}&sort=stars&order=desc&per_page=100`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.message || `API Error: ${res.status}`);
+    }
 
-    const json = (await ghFetch(url)) as { items: GhRepo[] };
-    const items = (json.items || []).filter((r) => !r.archived);
-
-    // Fetch good-first-issue counts only for the first 24 to stay under rate limit;
-    // the remaining repos still return with derived (estimated) gfi = 0.
-    const top = items.slice(0, 100);
-    const enriched = top.slice(0, 24);
-    const [counts, contribCounts] = await Promise.all([
-      Promise.all(
-        enriched.map(async (r) => {
-          try {
-            const issuesUrl = `https://api.github.com/search/issues?q=${encodeURIComponent(
-              `repo:${r.full_name} is:issue is:open label:"good first issue"`,
-            )}&per_page=1`;
-            const j = (await ghFetch(issuesUrl)) as { total_count: number };
-            return j.total_count ?? 0;
-          } catch {
-            return 0;
-          }
-        }),
-      ),
-      Promise.all(
-        enriched.map(async (r) => {
-          try {
-            const url = `https://api.github.com/repos/${r.full_name}/contributors?per_page=1&anon=true`;
-            return await ghCount(url);
-          } catch {
-            return 0;
-          }
-        }),
-      ),
-    ]);
-
-    return top.map((r, i) => {
-      const gfi = i < counts.length ? counts[i] : 0;
-      // For repos beyond the enriched window, estimate contributors from forks
-      // (a rough proxy) so the filter still has signal across all 100.
-      const contributors =
-        i < contribCounts.length
-          ? contribCounts[i]
-          : Math.max(1, Math.round(Math.log10(Math.max(1, r.forks_count)) * 40));
-      const competition: Repo["competition"] =
-        contributors < 30 ? "Low" : contributors < 150 ? "Medium" : "High";
-      const dayssincePush = daysSince(r.pushed_at);
-      const activityScore = clamp(100 - dayssincePush * 1.5);
-      const friendlinessScore = clamp(
-        40 + Math.log10(Math.max(1, gfi)) * 25 + (r.has_issues ? 10 : 0),
-      );
-      // difficulty: more stars + more open issues -> harder onboarding
-      const rawDiff = clamp(
-        Math.log10(Math.max(1, r.stargazers_count)) * 14 +
-          Math.log10(Math.max(1, r.open_issues_count)) * 8 -
-          Math.log10(Math.max(1, gfi)) * 10,
-      );
-      const difficulty: Repo["difficulty"] =
-        rawDiff < 40 ? "Beginner" : rawDiff < 70 ? "Intermediate" : "Advanced";
-
-      return {
-        id: r.id,
-        name: r.name,
-        fullName: r.full_name,
-        description: r.description,
-        url: r.html_url,
-        stars: r.stargazers_count,
-        forks: r.forks_count,
-        openIssues: r.open_issues_count,
-        goodFirstIssues: gfi,
-        contributors,
-        competition,
-        language: r.language,
-        updatedAt: r.updated_at,
-        pushedAt: r.pushed_at,
-        topics: r.topics ?? [],
-        difficulty,
-        difficultyScore: Math.round(rawDiff),
-        activityScore: Math.round(activityScore),
-        friendlinessScore: Math.round(friendlinessScore),
-        owner: { login: r.owner.login, avatar: r.owner.avatar_url },
-      };
-    });
+    const responseJson = await res.json();
+    return responseJson.data || [];
   });

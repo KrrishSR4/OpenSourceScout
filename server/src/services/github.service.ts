@@ -1,0 +1,252 @@
+import { config } from '../config';
+import { Repo, GhRepo } from '../types/github.types';
+import { logger } from '../lib/logger';
+
+export class GitHubService {
+  private static readonly TIMEOUT_MS = 10000;
+
+  private static getHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      'User-Agent': 'opensource-scout-backend',
+    };
+
+    if (config.GITHUB_TOKEN) {
+      headers.Authorization = `Bearer ${config.GITHUB_TOKEN}`;
+    }
+
+    return headers;
+  }
+
+  private static async checkRateLimit(headers: Headers): Promise<void> {
+    const remaining = headers.get('x-ratelimit-remaining');
+    const limit = headers.get('x-ratelimit-limit');
+    const reset = headers.get('x-ratelimit-reset');
+
+    if (remaining !== null) {
+      logger.debug(
+        `GitHub API Rate Limit: ${remaining}/${limit} remaining. Resets at ${reset}`
+      );
+    }
+  }
+
+  private static clamp(n: number, min = 0, max = 100): number {
+    return Math.max(min, Math.min(max, n));
+  }
+
+  private static daysSince(iso: string): number {
+    return (Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24);
+  }
+
+  /**
+   * Helper to perform a fetch to the GitHub API with timeout and rate-limit tracking.
+   */
+  private static async ghFetch(url: string): Promise<any> {
+    const signal = AbortSignal.timeout(this.TIMEOUT_MS);
+    const headers = this.getHeaders();
+
+    try {
+      const res = await fetch(url, { headers, signal });
+      await this.checkRateLimit(res.headers);
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        if (res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0') {
+          const resetTime = res.headers.get('x-ratelimit-reset');
+          throw new Error(
+            `GitHub API Rate Limit Exceeded. Reset time: ${
+              resetTime ? new Date(parseInt(resetTime, 10) * 1000).toLocaleTimeString() : 'unknown'
+            }`
+          );
+        }
+        throw new Error(`GitHub API Error (${res.status}): ${text.slice(0, 180)}`);
+      }
+
+      return await res.json();
+    } catch (error: any) {
+      if (error.name === 'TimeoutError') {
+        throw new Error(`GitHub API Request Timeout after ${this.TIMEOUT_MS}ms`);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Reads GitHub Link header to fetch total count of resource.
+   */
+  private static async ghCount(url: string): Promise<number> {
+    const signal = AbortSignal.timeout(this.TIMEOUT_MS);
+    const headers = this.getHeaders();
+
+    try {
+      const res = await fetch(url, { headers, signal });
+      await this.checkRateLimit(res.headers);
+
+      if (!res.ok) return 0;
+      
+      const link = res.headers.get('link') || '';
+      const m = link.match(/[?&]page=(\d+)>;\s*rel="last"/);
+      if (m) return Number(m[1]);
+
+      const body = (await res.json().catch(() => [])) as unknown[];
+      return Array.isArray(body) ? body.length : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
+   * Normalizes raw GhRepo item to standardized Repo model with metrics/scores.
+   */
+  private static normalizeRepo(r: GhRepo, gfiCount: number, contributorCount: number): Repo {
+    const dayssincePush = this.daysSince(r.pushed_at);
+    const activityScore = this.clamp(100 - dayssincePush * 1.5);
+    const friendlinessScore = this.clamp(
+      40 + Math.log10(Math.max(1, gfiCount)) * 25 + (r.has_issues ? 10 : 0)
+    );
+
+    const rawDiff = this.clamp(
+      Math.log10(Math.max(1, r.stargazers_count)) * 14 +
+        Math.log10(Math.max(1, r.open_issues_count)) * 8 -
+        Math.log10(Math.max(1, gfiCount)) * 10
+    );
+
+    const difficulty: Repo['difficulty'] =
+      rawDiff < 40 ? 'Beginner' : rawDiff < 70 ? 'Intermediate' : 'Advanced';
+
+    const competition: Repo['competition'] =
+      contributorCount < 30 ? 'Low' : contributorCount < 150 ? 'Medium' : 'High';
+
+    return {
+      id: r.id,
+      name: r.name,
+      fullName: r.full_name,
+      description: r.description,
+      url: r.html_url,
+      stars: r.stargazers_count,
+      forks: r.forks_count,
+      openIssues: r.open_issues_count,
+      goodFirstIssues: gfiCount,
+      contributors: contributorCount,
+      competition,
+      language: r.language,
+      updatedAt: r.updated_at,
+      pushedAt: r.pushed_at,
+      topics: r.topics ?? [],
+      difficulty,
+      difficultyScore: Math.round(rawDiff),
+      activityScore: Math.round(activityScore),
+      friendlinessScore: Math.round(friendlinessScore),
+      owner: {
+        login: r.owner.login,
+        avatar: r.owner.avatar_url,
+      },
+    };
+  }
+
+  /**
+   * Search repositories matching language and optional framework classification.
+   */
+  public static async searchRepositories(
+    language: string,
+    framework?: string,
+    page = 1,
+    perPage = 100
+  ): Promise<Repo[]> {
+    if (!language) return [];
+
+    const q = [
+      framework ? `topic:${framework.toLowerCase()}` : '',
+      `language:${language}`,
+      'stars:>200',
+      'archived:false',
+      'is:public',
+      'good-first-issues:>0',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    const url = `${config.GITHUB_API_URL}/search/repositories?q=${encodeURIComponent(
+      q
+    )}&sort=stars&order=desc&page=${page}&per_page=${perPage}`;
+
+    logger.info(`Searching GitHub repositories with query: "${q}"`);
+    const json = (await this.ghFetch(url)) as { items: GhRepo[] };
+    const items = (json.items || []).filter((r) => !r.archived);
+
+    // Limit fetching of detailed metrics to top 24 to preserve rate limits
+    const top = items.slice(0, 100);
+    const enriched = top.slice(0, 24);
+
+    const [counts, contribCounts] = await Promise.all([
+      Promise.all(
+        enriched.map(async (r) => {
+          try {
+            const issuesUrl = `${config.GITHUB_API_URL}/search/issues?q=${encodeURIComponent(
+              `repo:${r.full_name} is:issue is:open label:"good first issue"`
+            )}&per_page=1`;
+            const j = (await this.ghFetch(issuesUrl)) as { total_count: number };
+            return j.total_count ?? 0;
+          } catch {
+            return 0;
+          }
+        })
+      ),
+      Promise.all(
+        enriched.map(async (r) => {
+          try {
+            const url = `${config.GITHUB_API_URL}/repos/${r.full_name}/contributors?per_page=1&anon=true`;
+            return await this.ghCount(url);
+          } catch {
+            return 0;
+          }
+        })
+      ),
+    ]);
+
+    return top.map((r, i) => {
+      const gfiCount = i < counts.length ? counts[i] : 0;
+      const contributorCount =
+        i < contribCounts.length
+          ? contribCounts[i]
+          : Math.max(1, Math.round(Math.log10(Math.max(1, r.forks_count)) * 40));
+
+      return this.normalizeRepo(r, gfiCount, contributorCount);
+    });
+  }
+
+  /**
+   * Fetch specific repository details by owner and name.
+   */
+  public static async getRepository(owner: string, repoName: string): Promise<Repo> {
+    const url = `${config.GITHUB_API_URL}/repos/${owner}/${repoName}`;
+    logger.info(`Fetching details for GitHub repository: ${owner}/${repoName}`);
+    
+    const r = (await this.ghFetch(url)) as GhRepo;
+
+    // Fetch good first issues
+    let gfiCount = 0;
+    try {
+      const issuesUrl = `${config.GITHUB_API_URL}/search/issues?q=${encodeURIComponent(
+        `repo:${r.full_name} is:issue is:open label:"good first issue"`
+      )}&per_page=1`;
+      const j = (await this.ghFetch(issuesUrl)) as { total_count: number };
+      gfiCount = j.total_count ?? 0;
+    } catch (e) {
+      logger.warn(`Failed to fetch GFI count for ${r.full_name}`);
+    }
+
+    // Fetch contributors count
+    let contributorCount = 0;
+    try {
+      const url = `${config.GITHUB_API_URL}/repos/${r.full_name}/contributors?per_page=1&anon=true`;
+      contributorCount = await this.ghCount(url);
+    } catch (e) {
+      logger.warn(`Failed to fetch contributors count for ${r.full_name}`);
+      contributorCount = Math.max(1, Math.round(Math.log10(Math.max(1, r.forks_count)) * 40));
+    }
+
+    return this.normalizeRepo(r, gfiCount, contributorCount);
+  }
+}

@@ -22,6 +22,14 @@ export default defineConfig(({ mode }) => {
         '@tanstack/react-start': path.resolve(__dirname, './src/lib/react-start-compat.ts'),
       },
     },
+    server: {
+      proxy: {
+        '/api': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+        },
+      },
+    },
     define: {
       'process.env.GITHUB_TOKEN': JSON.stringify(env.GITHUB_TOKEN || env.VITE_GITHUB_TOKEN || ''),
       'process.env': {

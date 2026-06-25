@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model RepositoryCache {
+  id          String      @id @default(uuid())
+  githubId    Int         @unique
+  fullName    String      @unique
+  description String?
+  stars       Int         @default(0)
+  forks       Int         @default(0)
+  openIssues  Int         @default(0)
+  language    String?
+  rawData     Json
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  frameworks  Framework[] @relation("RepositoryFrameworks")
+
+  @@index([fullName])
+  @@index([language])
+}
+
+model Framework {
+  id          String            @id @default(uuid())
+  name        String            @unique
+  description String?
+  keywords    String[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  repos       RepositoryCache[] @relation("RepositoryFrameworks")
+
+  @@index([name])
+}
+
+model SearchHistory {
+  id           String   @id @default(uuid())
+  query        String
+  filters      Json?
+  resultsCount Int?
+  createdAt    DateTime @default(now())
+
+  @@index([query])
+  @@index([createdAt])
+}
