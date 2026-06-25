@@ -2,6 +2,8 @@ import { config } from '../config';
 import { Repo, GhRepo } from '../types/github.types';
 import { logger } from '../lib/logger';
 
+import { prisma } from '../lib/prisma';
+
 export class GitHubService {
   private static readonly TIMEOUT_MS = 10000;
 
@@ -175,13 +177,47 @@ export class GitHubService {
     const json = (await this.ghFetch(url)) as { items: GhRepo[] };
     const items = (json.items || []).filter((r) => !r.archived);
 
-    // Limit fetching of detailed metrics to top 24 to preserve rate limits
     const top = items.slice(0, 100);
-    const enriched = top.slice(0, 24);
+
+    // 1. Check DB cache
+    const githubIds = top.map((r) => r.id);
+    const existingCaches = await prisma.repositoryCache.findMany({
+      where: { githubId: { in: githubIds } },
+    });
+    const cacheMap = new Map(existingCaches.map((c) => [c.githubId, c]));
+
+    const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+    const now = Date.now();
+
+    // 2. Identify which repos need enrichment
+    const reposToEnrich: GhRepo[] = [];
+    const results: Repo[] = [];
+
+    // Ensure the framework exists in the DB if specified
+    if (framework) {
+      await prisma.framework.upsert({
+        where: { name: framework.toLowerCase() },
+        update: {},
+        create: { name: framework.toLowerCase() },
+      });
+    }
+
+    for (const r of top) {
+      const cached = cacheMap.get(r.id);
+      if (cached && now - new Date(cached.updatedAt).getTime() < CACHE_TTL_MS) {
+        results.push(cached.rawData as unknown as Repo);
+      } else {
+        reposToEnrich.push(r);
+      }
+    }
+
+    // 3. For repos that need enrichment, fetch details from GitHub (limit to max 24 new enrichments per search to avoid rate limits)
+    const limitEnrich = reposToEnrich.slice(0, 24);
+    const remainingEnrich = reposToEnrich.slice(24);
 
     const [counts, contribCounts] = await Promise.all([
       Promise.all(
-        enriched.map(async (r) => {
+        limitEnrich.map(async (r) => {
           try {
             const issuesUrl = `${config.GITHUB_API_URL}/search/issues?q=${encodeURIComponent(
               `repo:${r.full_name} is:issue is:open label:"good first issue"`
@@ -194,7 +230,7 @@ export class GitHubService {
         })
       ),
       Promise.all(
-        enriched.map(async (r) => {
+        limitEnrich.map(async (r) => {
           try {
             const url = `${config.GITHUB_API_URL}/repos/${r.full_name}/contributors?per_page=1&anon=true`;
             return await this.ghCount(url);
@@ -205,21 +241,93 @@ export class GitHubService {
       ),
     ]);
 
-    return top.map((r, i) => {
-      const gfiCount = i < counts.length ? counts[i] : 0;
-      const contributorCount =
-        i < contribCounts.length
-          ? contribCounts[i]
-          : Math.max(1, Math.round(Math.log10(Math.max(1, r.forks_count)) * 40));
+    // Save enriched repos to cache
+    const newlyEnriched: Repo[] = [];
+    for (let i = 0; i < limitEnrich.length; i++) {
+      const r = limitEnrich[i];
+      const gfiCount = counts[i];
+      const contributorCount = contribCounts[i];
+      const normalized = this.normalizeRepo(r, gfiCount, contributorCount);
 
-      return this.normalizeRepo(r, gfiCount, contributorCount);
-    });
+      // Save to database
+      try {
+        await prisma.repositoryCache.upsert({
+          where: { githubId: r.id },
+          update: {
+            description: r.description,
+            stars: r.stargazers_count,
+            forks: r.forks_count,
+            openIssues: r.open_issues_count,
+            language: r.language,
+            rawData: normalized as any,
+            updatedAt: new Date(),
+            frameworks: framework ? {
+              connect: { name: framework.toLowerCase() }
+            } : undefined,
+          },
+          create: {
+            githubId: r.id,
+            fullName: r.full_name,
+            description: r.description,
+            stars: r.stargazers_count,
+            forks: r.forks_count,
+            openIssues: r.open_issues_count,
+            language: r.language,
+            rawData: normalized as any,
+            frameworks: framework ? {
+              connect: { name: framework.toLowerCase() }
+            } : undefined,
+          },
+        });
+      } catch (err) {
+        logger.error(err, `Failed to cache repo ${r.full_name}`);
+      }
+
+      newlyEnriched.push(normalized);
+    }
+
+    // For the remaining repos that we couldn't enrich in this request, use fallback or stale cache if available
+    const fallbackRepos: Repo[] = [];
+    for (const r of remainingEnrich) {
+      const cached = cacheMap.get(r.id);
+      if (cached) {
+        // Stale cache is better than fallback
+        fallbackRepos.push(cached.rawData as unknown as Repo);
+      } else {
+        const normalized = this.normalizeRepo(
+          r,
+          0,
+          Math.max(1, Math.round(Math.log10(Math.max(1, r.forks_count)) * 40))
+        );
+        fallbackRepos.push(normalized);
+      }
+    }
+
+    // Combine all results in original order
+    const finalResultsMap = new Map<number, Repo>();
+    results.forEach((r) => finalResultsMap.set(r.id, r));
+    newlyEnriched.forEach((r) => finalResultsMap.set(r.id, r));
+    fallbackRepos.forEach((r) => finalResultsMap.set(r.id, r));
+
+    return top.map((r) => finalResultsMap.get(r.id)!).filter(Boolean);
   }
 
   /**
    * Fetch specific repository details by owner and name.
    */
   public static async getRepository(owner: string, repoName: string): Promise<Repo> {
+    const fullName = `${owner}/${repoName}`;
+    
+    // Check DB cache first case-insensitively
+    const cached = await prisma.repositoryCache.findFirst({
+      where: { fullName: { equals: fullName, mode: 'insensitive' } },
+    });
+    
+    const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+    if (cached && Date.now() - new Date(cached.updatedAt).getTime() < CACHE_TTL_MS) {
+      return cached.rawData as unknown as Repo;
+    }
+
     const url = `${config.GITHUB_API_URL}/repos/${owner}/${repoName}`;
     logger.info(`Fetching details for GitHub repository: ${owner}/${repoName}`);
     
@@ -247,6 +355,36 @@ export class GitHubService {
       contributorCount = Math.max(1, Math.round(Math.log10(Math.max(1, r.forks_count)) * 40));
     }
 
-    return this.normalizeRepo(r, gfiCount, contributorCount);
+    const normalized = this.normalizeRepo(r, gfiCount, contributorCount);
+
+    // Upsert cache
+    try {
+      await prisma.repositoryCache.upsert({
+        where: { githubId: r.id },
+        update: {
+          description: r.description,
+          stars: r.stargazers_count,
+          forks: r.forks_count,
+          openIssues: r.open_issues_count,
+          language: r.language,
+          rawData: normalized as any,
+          updatedAt: new Date(),
+        },
+        create: {
+          githubId: r.id,
+          fullName: r.full_name,
+          description: r.description,
+          stars: r.stargazers_count,
+          forks: r.forks_count,
+          openIssues: r.open_issues_count,
+          language: r.language,
+          rawData: normalized as any,
+        },
+      });
+    } catch (err) {
+      logger.error(err, `Failed to cache repo ${r.full_name}`);
+    }
+
+    return normalized;
   }
 }

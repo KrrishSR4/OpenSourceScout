@@ -10,6 +10,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   GITHUB_TOKEN: z.string().optional(),
   GITHUB_API_URL: z.string().url().default('https://api.github.com'),
+  DATABASE_URL: z.string().url(),
 });
 
 const parseResult = envSchema.safeParse(process.env);

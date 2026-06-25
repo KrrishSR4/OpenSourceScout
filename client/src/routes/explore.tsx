@@ -35,6 +35,7 @@ function ExplorePage() {
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<string>("");
   const [competition, setCompetition] = useState<"all" | "Low" | "Medium" | "High">("all");
+  const [difficulty, setDifficulty] = useState<"all" | "Beginner" | "Intermediate" | "Advanced">("all");
 
   const callSearch = useServerFn(searchRepos);
   const mutation = useMutation({
@@ -282,64 +283,104 @@ function ExplorePage() {
             >
               {(() => {
                 const all = mutation.data;
-                const filtered = competition === "all" ? all : all.filter((r) => r.competition === competition);
+                const filtered = all.filter((r) => {
+                  const compMatch = competition === "all" || r.competition === competition;
+                  const diffMatch = difficulty === "all" || r.difficulty === difficulty;
+                  return compMatch && diffMatch;
+                });
                 const counts = {
                   all: all.length,
                   Low: all.filter((r) => r.competition === "Low").length,
                   Medium: all.filter((r) => r.competition === "Medium").length,
                   High: all.filter((r) => r.competition === "High").length,
                 };
+                const diffCounts = {
+                  all: all.length,
+                  Beginner: all.filter((r) => r.difficulty === "Beginner").length,
+                  Intermediate: all.filter((r) => r.difficulty === "Intermediate").length,
+                  Advanced: all.filter((r) => r.difficulty === "Advanced").length,
+                };
                 return all.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-surface p-10 text-center text-muted-foreground">
-                  No repositories matched. Try removing the framework, or pick a different language.
-                </div>
-              ) : (
-                <>
-                  <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-                    <h2 className="font-display text-2xl text-ink">
-                      {filtered.length} of {all.length} repositories
-                    </h2>
-                    <span className="text-xs text-muted-foreground">Sorted by stars · live data</span>
+                  <div className="rounded-2xl border border-border bg-surface p-10 text-center text-muted-foreground">
+                    No repositories matched. Try removing the framework, or pick a different language.
                   </div>
-                  <div className="mb-6 flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                      <Swords className="h-3 w-3" /> Competition
-                    </span>
-                    {(["all", "Low", "Medium", "High"] as const).map((c) => {
-                      const active = competition === c;
-                      const dot =
-                        c === "Low" ? "var(--color-accent-2)" :
-                        c === "Medium" ? "var(--color-accent)" :
-                        c === "High" ? "var(--color-accent-3)" : "var(--color-muted-foreground)";
-                      return (
-                        <button
-                          key={c}
-                          onClick={() => setCompetition(c)}
-                          className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-xs font-semibold transition-all ${
-                            active
-                              ? "border-ink bg-ink text-[var(--color-background)]"
-                              : "border-border bg-surface text-muted-foreground hover:border-ink hover:text-ink"
-                          }`}
-                        >
-                          <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} />
-                          {c === "all" ? "All" : c}
-                          <span className="font-mono text-[10px] opacity-70">{counts[c]}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {filtered.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">
-                      No repositories at this competition level. Try another filter.
+                ) : (
+                  <>
+                    <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+                      <h2 className="font-display text-2xl text-ink">
+                        {filtered.length} of {all.length} repositories
+                      </h2>
+                      <span className="text-xs text-muted-foreground">Sorted by stars · live data</span>
                     </div>
-                  ) : (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {filtered.map((r, i) => (
-                        <RepoCard key={r.id} repo={r} delay={i * 0.04} />
-                      ))}
+                    <div className="mb-6 flex flex-wrap items-center gap-6">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                          <Swords className="h-3 w-3" /> Competition
+                        </span>
+                        {(["all", "Low", "Medium", "High"] as const).map((c) => {
+                          const active = competition === c;
+                          const dot =
+                            c === "Low" ? "var(--color-accent-2)" :
+                            c === "Medium" ? "var(--color-accent)" :
+                            c === "High" ? "var(--color-accent-3)" : "var(--color-muted-foreground)";
+                          return (
+                            <button
+                              key={c}
+                              onClick={() => setCompetition(c)}
+                              className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-xs font-semibold transition-all ${
+                                active
+                                  ? "border-ink bg-ink text-[var(--color-background)]"
+                                  : "border-border bg-surface text-muted-foreground hover:border-ink hover:text-ink"
+                              }`}
+                            >
+                              <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} />
+                              {c === "all" ? "All" : c}
+                              <span className="font-mono text-[10px] opacity-70">{counts[c]}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                          <Gauge className="h-3 w-3" /> Difficulty
+                        </span>
+                        {(["all", "Beginner", "Intermediate", "Advanced"] as const).map((d) => {
+                          const active = difficulty === d;
+                          const dot =
+                            d === "Beginner" ? "var(--color-accent-2)" :
+                            d === "Intermediate" ? "var(--color-accent)" :
+                            d === "Advanced" ? "var(--color-accent-3)" : "var(--color-muted-foreground)";
+                          return (
+                            <button
+                              key={d}
+                              onClick={() => setDifficulty(d)}
+                              className={`inline-flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-xs font-semibold transition-all ${
+                                active
+                                  ? "border-ink bg-ink text-[var(--color-background)]"
+                                  : "border-border bg-surface text-muted-foreground hover:border-ink hover:text-ink"
+                              }`}
+                            >
+                              <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} />
+                              {d === "all" ? "All" : d}
+                              <span className="font-mono text-[10px] opacity-70">{diffCounts[d]}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  )}
-                </>
+                    {filtered.length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-border bg-surface p-10 text-center text-muted-foreground">
+                        No repositories matched this filter combination. Try another filter.
+                      </div>
+                    ) : (
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {filtered.map((r, i) => (
+                          <RepoCard key={r.id} repo={r} delay={i * 0.04} />
+                        ))}
+                      </div>
+                    )}
+                  </>
                 );
               })()}
             </motion.div>
