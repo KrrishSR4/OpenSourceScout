@@ -505,12 +505,77 @@ function CTA() {
       <div className="relative overflow-hidden rounded-[2.5rem] border-2 border-ink bg-ink p-10 md:p-20" style={{ boxShadow: "10px 10px 0 0 var(--color-accent-2)" }}>
         <div className="pointer-events-none absolute inset-0 halo opacity-50" />
         <div className="grain-overlay" />
-        <motion.div
-          className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-          style={{ background: "conic-gradient(from 0deg, var(--color-accent), var(--color-accent-3), var(--color-accent-4), var(--color-accent-2), var(--color-accent))", filter: "blur(40px)", opacity: 0.6 }}
-        />
+        {/* Beautifully animated multi-layered liquid gradient */}
+        <div className="pointer-events-none absolute -right-32 -top-32 h-[26rem] w-[26rem] overflow-visible select-none">
+          {/* Layer 1: Soft outer pulse */}
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            animate={{
+              scale: [1, 1.35, 0.9, 1],
+              opacity: [0.35, 0.7, 0.25, 0.35],
+            }}
+            transition={{
+              duration: 6,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            style={{
+              background: "radial-gradient(circle at center, var(--color-accent-3) 0%, transparent 70%)",
+              filter: "blur(50px)",
+            }}
+          />
+          {/* Layer 2: Core spinning conic gradient with morphing shape */}
+          <motion.div
+            className="absolute inset-0 rounded-full"
+            animate={{
+              rotate: [0, 180, 360],
+              scale: [1, 1.2, 0.85, 1],
+              borderRadius: [
+                "42% 58% 63% 37% / 41% 44% 56% 59%",
+                "70% 30% 52% 48% / 60% 40% 60% 40%",
+                "35% 65% 38% 62% / 45% 55% 45% 55%",
+                "42% 58% 63% 37% / 41% 44% 56% 59%"
+              ]
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            style={{
+              background: "conic-gradient(from 0deg, var(--color-accent), var(--color-accent-3), var(--color-accent-4), var(--color-accent-2), var(--color-accent))",
+              filter: "blur(40px)",
+              opacity: 0.75,
+            }}
+          />
+          {/* Layer 3: Secondary drifting radial highlight */}
+          <motion.div
+            className="absolute inset-4 rounded-full"
+            animate={{
+              rotate: [360, 180, 0],
+              scale: [0.8, 1.2, 0.9, 0.8],
+              x: [-30, 30, -15, -30],
+              y: [20, -25, 25, 20],
+              borderRadius: [
+                "50% 50% 30% 70% / 50% 60% 40% 50%",
+                "25% 75% 55% 45% / 70% 30% 70% 30%",
+                "65% 35% 45% 55% / 40% 60% 40% 60%",
+                "50% 50% 30% 70% / 50% 60% 40% 50%"
+              ]
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            style={{
+              background: "radial-gradient(circle at center, var(--color-accent-4) 0%, transparent 80%)",
+              filter: "blur(30px)",
+              opacity: 0.6,
+              mixBlendMode: "plus-lighter",
+            }}
+          />
+        </div>
         <div className="relative">
           <Compass className="h-10 w-10" style={{ color: "var(--color-accent-2)" }} />
           <h2 className="mt-6 font-display text-5xl leading-[0.92] tracking-tight text-[var(--color-background)] md:text-8xl">
