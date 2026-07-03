@@ -1,2 +1,37 @@
-# Docker Compose Placeholder Config
-# Full multi-container composition setup will be implemented here.
+services:
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.server
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=redis://redis:6379
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - REQUEST_TIMEOUT=${REQUEST_TIMEOUT:-10000}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.client
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
