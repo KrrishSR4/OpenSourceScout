@@ -3,6 +3,8 @@ import { Repo } from '../types/github.types';
 import { calculateRepositoryScore } from '../utils/scoring';
 import { rankRepositories } from '../utils/ranking';
 import { logger } from '../lib/logger';
+import { CacheService } from './cache.service';
+import { config } from '../config';
 
 export interface DiscoveryOptions {
   language: string;
@@ -18,6 +20,8 @@ export interface DiscoveryRepo extends Repo {
   framework?: string;
   watchers: number;
 }
+
+const activeRefreshes = new Set<string>();
 
 export class RepositoryDiscoveryService {
   /**
@@ -53,15 +57,86 @@ export class RepositoryDiscoveryService {
       logger.warn(`Search for unsupported language requested: ${language}`);
     }
 
-    // 1. Fetch repositories using existing GitHubService
-    // We pass page=1 and a larger perPage (like 100) to GitHubService so that we can do in-memory filtering,
-    // de-duplication, ranking, and scoring locally before slicing to the requested page/perPage.
+    const cacheKey = `repositories:${language.toLowerCase()}:${(framework || 'none').toLowerCase()}:${page}:${sort}:${order}`;
     const ghSort = sort === 'score' || sort === 'relevance' ? 'stars' : sort;
+
+    // Try to get from cache first
+    const cachedPayload = await CacheService.get<{ data: DiscoveryRepo[]; cachedAt: number }>(cacheKey);
+    if (cachedPayload) {
+      const { data, cachedAt } = cachedPayload;
+      const ageMs = Date.now() - cachedAt;
+      const halfLifeMs = (config.CACHE_TTL / 2) * 1000;
+
+      if (ageMs > halfLifeMs) {
+        // Stale! Trigger background refresh
+        if (!activeRefreshes.has(cacheKey)) {
+          activeRefreshes.add(cacheKey);
+          (async () => {
+            try {
+              logger.info(`Refreshing stale cache in background for key: ${cacheKey}`);
+              const freshRepos = await GitHubService.searchRepositories(
+                language,
+                framework,
+                1,
+                100,
+                ghSort,
+                order
+              );
+              if (freshRepos && freshRepos.length > 0) {
+                const uniqueMap = new Map<number, Repo>();
+                const seenFullNames = new Set<string>();
+                for (const r of freshRepos) {
+                  const lowerFullName = r.fullName.toLowerCase();
+                  if (!uniqueMap.has(r.id) && !seenFullNames.has(lowerFullName)) {
+                    uniqueMap.set(r.id, r);
+                    seenFullNames.add(lowerFullName);
+                  }
+                }
+                const deDuplicated = Array.from(uniqueMap.values());
+                
+                let filtered = deDuplicated;
+                if (framework) {
+                  const fwLower = framework.toLowerCase();
+                  filtered = deDuplicated.filter((r) => {
+                    const hasTopic = r.topics.some((t) => t.toLowerCase() === fwLower);
+                    const inName = r.name.toLowerCase().includes(fwLower);
+                    const inDesc = r.description?.toLowerCase().includes(fwLower) ?? false;
+                    return hasTopic || inName || inDesc;
+                  });
+                }
+                
+                const ranked = rankRepositories(filtered, sort, order);
+                const startIndex = (page - 1) * perPage;
+                const paginated = ranked.slice(startIndex, startIndex + perPage);
+                const freshResults = paginated.map((r) => {
+                  const score = calculateRepositoryScore(r);
+                  return {
+                    ...r,
+                    score,
+                    framework,
+                    watchers: r.stars,
+                  };
+                });
+                
+                await CacheService.set(cacheKey, { data: freshResults, cachedAt: Date.now() });
+              }
+            } catch (err) {
+              logger.error(err, `Failed to refresh background cache for key: ${cacheKey}`);
+            } finally {
+              activeRefreshes.delete(cacheKey);
+            }
+          })();
+        }
+      }
+      return data;
+    }
+
+    // 1. Fetch repositories using existing GitHubService
     const rawRepos = await GitHubService.searchRepositories(
       language,
       framework,
-      1, // Fetch first page from GitHub to filter/rank
-      100, // Fetch up to 100 items for ranking
+      1,
+      100,
       ghSort,
       order
     );
@@ -84,7 +159,6 @@ export class RepositoryDiscoveryService {
     const deDuplicated = Array.from(uniqueMap.values());
 
     // 3. Framework Keyword Filtering
-    // If a framework is specified, ensure repositories contain framework keywords or topics if they are not already filtered by the GitHub search topic query
     let filtered = deDuplicated;
     if (framework) {
       const fwLower = framework.toLowerCase();
@@ -104,14 +178,19 @@ export class RepositoryDiscoveryService {
     const paginated = ranked.slice(startIndex, startIndex + perPage);
 
     // 6. Optimize and Map Response to include score, framework, and watchers
-    return paginated.map((r) => {
+    const results = paginated.map((r) => {
       const score = calculateRepositoryScore(r);
       return {
         ...r,
         score,
         framework,
-        watchers: r.stars, // Set watchers equivalent to stars
+        watchers: r.stars,
       };
     });
+
+    // Store in cache
+    await CacheService.set(cacheKey, { data: results, cachedAt: Date.now() });
+
+    return results;
   }
 }
