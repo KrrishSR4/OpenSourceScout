@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { GitHubService } from '../services/github.service';
+import { RepositoryDiscoveryService } from '../services/repositoryDiscovery.service';
 import { searchReposSchema, getRepoDetailsSchema } from '../validators/repository.validator';
 import { logger } from '../lib/logger';
 
@@ -23,14 +24,14 @@ export class RepositoryController {
 
       const { language, framework, page, per_page, sort, order } = parseResult.data.query;
 
-      const repos = await GitHubService.searchRepositories(
+      const repos = await RepositoryDiscoveryService.discover({
         language,
         framework,
         page,
-        per_page,
-        sort,
-        order
-      );
+        perPage: per_page,
+        sort: sort as any,
+        order,
+      });
 
       res.status(200).json({
         success: true,

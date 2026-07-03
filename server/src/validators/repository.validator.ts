@@ -6,7 +6,7 @@ export const searchReposSchema = z.object({
     framework: z.string().max(50).optional(),
     page: z.coerce.number().int().min(1).default(1),
     per_page: z.coerce.number().int().min(1).max(100).default(100),
-    sort: z.enum(['stars', 'forks', 'updated', 'relevance']).default('stars'),
+    sort: z.enum(['stars', 'forks', 'updated', 'relevance', 'score']).default('relevance'),
     order: z.enum(['asc', 'desc']).default('desc'),
   }),
 });
