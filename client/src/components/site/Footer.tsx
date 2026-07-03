@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Compass, Github, Twitter, Globe } from "lucide-react";
+import { Compass, Github } from "lucide-react";
 import { motion } from "framer-motion";
 
 export function Footer() {
@@ -57,11 +57,14 @@ export function Footer() {
             who want to ship their first meaningful contribution — and keep going.
           </p>
           <div className="mt-5 flex items-center gap-2">
-            {[Github, Twitter, Globe].map((Icon, i) => (
-              <a key={i} href="#" className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-ink hover:text-ink">
-                <Icon className="h-4 w-4" />
-              </a>
-            ))}
+            <a
+              href="https://github.com/KrrishSR4/OpenSourceScout"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-all hover:-translate-y-0.5 hover:border-ink hover:text-ink"
+            >
+              <Github className="h-4 w-4" />
+            </a>
           </div>
         </div>
         <div>
