@@ -81,9 +81,19 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-border">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 text-xs text-muted-foreground">
-          <span>© {new Date().getFullYear()} OpenSource Scout. Crafted for makers.</span>
-          <span className="font-mono">v1.0 · live</span>
+        <div className="mx-auto flex max-w-7xl flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 text-xs text-muted-foreground">
+          <span>© {new Date().getFullYear()} OpenSource Scout. Crafted for contributors.</span>
+          <div className="flex items-center gap-3">
+            <a
+              href="https://github.com/KrrishSR4"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-ink transition-all hover:-translate-y-0.5 hover:border-ink"
+            >
+              <Github className="h-3.5 w-3.5" />
+              <span className="font-medium">KrrishSR4</span>
+            </a>
+          </div>
         </div>
       </div>
     </footer>
