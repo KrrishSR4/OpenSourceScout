@@ -5,8 +5,6 @@ import { logger } from '../lib/logger';
 import { prisma } from '../lib/prisma';
 
 export class GitHubService {
-  private static readonly TIMEOUT_MS = 10000;
-
   private static getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
       Accept: 'application/vnd.github+json',
@@ -44,58 +42,92 @@ export class GitHubService {
   /**
    * Helper to perform a fetch to the GitHub API with timeout and rate-limit tracking.
    */
-  private static async ghFetch(url: string): Promise<any> {
-    const signal = AbortSignal.timeout(this.TIMEOUT_MS);
+  private static async ghFetch(url: string, retries = 3, delayMs = 1000): Promise<any> {
     const headers = this.getHeaders();
 
-    try {
-      const res = await fetch(url, { headers, signal });
-      await this.checkRateLimit(res.headers);
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      const signal = AbortSignal.timeout(config.REQUEST_TIMEOUT);
+      try {
+        const res = await fetch(url, { headers, signal });
+        await this.checkRateLimit(res.headers);
 
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        if (res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0') {
-          const resetTime = res.headers.get('x-ratelimit-reset');
-          throw new Error(
-            `GitHub API Rate Limit Exceeded. Reset time: ${
-              resetTime ? new Date(parseInt(resetTime, 10) * 1000).toLocaleTimeString() : 'unknown'
-            }`
-          );
+        if (!res.ok) {
+          const text = await res.text().catch(() => '');
+          if (res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0') {
+            const resetTime = res.headers.get('x-ratelimit-reset');
+            throw new Error(
+              `GitHub API Rate Limit Exceeded. Reset time: ${
+                resetTime ? new Date(parseInt(resetTime, 10) * 1000).toLocaleTimeString() : 'unknown'
+              }`
+            );
+          }
+
+          if (res.status >= 500 && attempt < retries) {
+            logger.warn(`GitHub API 5xx error (${res.status}) on attempt ${attempt}/${retries}. Retrying in ${delayMs}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+            continue;
+          }
+
+          throw new Error(`GitHub API Error (${res.status}): ${text.slice(0, 180)}`);
         }
-        throw new Error(`GitHub API Error (${res.status}): ${text.slice(0, 180)}`);
-      }
 
-      return await res.json();
-    } catch (error: any) {
-      if (error.name === 'TimeoutError') {
-        throw new Error(`GitHub API Request Timeout after ${this.TIMEOUT_MS}ms`);
+        return await res.json();
+      } catch (error: any) {
+        const isTimeout = error.name === 'TimeoutError' || error.message?.includes('timeout');
+        const isNetwork = error.message?.includes('fetch failed') || error.code === 'ECONNRESET';
+
+        if ((isTimeout || isNetwork) && attempt < retries) {
+          logger.warn(`GitHub API request failed/timeout (attempt ${attempt}/${retries}): ${error.message}. Retrying in ${delayMs}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+          continue;
+        }
+
+        if (isTimeout) {
+          throw new Error(`GitHub API Request Timeout after ${config.REQUEST_TIMEOUT}ms`);
+        }
+        throw error;
       }
-      throw error;
     }
   }
 
   /**
    * Reads GitHub Link header to fetch total count of resource.
    */
-  private static async ghCount(url: string): Promise<number> {
-    const signal = AbortSignal.timeout(this.TIMEOUT_MS);
+  private static async ghCount(url: string, retries = 3, delayMs = 1000): Promise<number> {
     const headers = this.getHeaders();
 
-    try {
-      const res = await fetch(url, { headers, signal });
-      await this.checkRateLimit(res.headers);
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      const signal = AbortSignal.timeout(config.REQUEST_TIMEOUT);
+      try {
+        const res = await fetch(url, { headers, signal });
+        await this.checkRateLimit(res.headers);
 
-      if (!res.ok) return 0;
-      
-      const link = res.headers.get('link') || '';
-      const m = link.match(/[?&]page=(\d+)>;\s*rel="last"/);
-      if (m) return Number(m[1]);
+        if (!res.ok) {
+          if (res.status >= 500 && attempt < retries) {
+            await new Promise((resolve) => setTimeout(resolve, delayMs));
+            continue;
+          }
+          return 0;
+        }
 
-      const body = (await res.json().catch(() => [])) as unknown[];
-      return Array.isArray(body) ? body.length : 0;
-    } catch {
-      return 0;
+        const link = res.headers.get('link') || '';
+        const m = link.match(/[?&]page=(\d+)>;\s*rel="last"/);
+        if (m) return Number(m[1]);
+
+        const body = (await res.json().catch(() => [])) as unknown[];
+        return Array.isArray(body) ? body.length : 0;
+      } catch (error: any) {
+        const isTimeout = error.name === 'TimeoutError' || error.message?.includes('timeout');
+        const isNetwork = error.message?.includes('fetch failed') || error.code === 'ECONNRESET';
+
+        if ((isTimeout || isNetwork) && attempt < retries) {
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+          continue;
+        }
+        return 0;
+      }
     }
+    return 0;
   }
 
   /**
@@ -154,7 +186,9 @@ export class GitHubService {
     language: string,
     framework?: string,
     page = 1,
-    perPage = 100
+    perPage = 100,
+    sort = 'stars',
+    order: 'asc' | 'desc' = 'desc'
   ): Promise<Repo[]> {
     if (!language) return [];
 
@@ -169,15 +203,29 @@ export class GitHubService {
       .filter(Boolean)
       .join(' ');
 
+    let sortParam = '';
+    if (sort && sort !== 'relevance') {
+      sortParam = `&sort=${sort}`;
+    }
+
     const url = `${config.GITHUB_API_URL}/search/repositories?q=${encodeURIComponent(
       q
-    )}&sort=stars&order=desc&page=${page}&per_page=${perPage}`;
+    )}${sortParam}&order=${order}&page=${page}&per_page=${perPage}`;
 
     logger.info(`Searching GitHub repositories with query: "${q}"`);
     const json = (await this.ghFetch(url)) as { items: GhRepo[] };
-    const items = (json.items || []).filter((r) => !r.archived);
+    const rawItems = json.items || [];
 
-    const top = items.slice(0, 100);
+    // De-duplicate items by id
+    const uniqueMap = new Map<number, GhRepo>();
+    for (const item of rawItems) {
+      if (!uniqueMap.has(item.id) && !item.archived) {
+        uniqueMap.set(item.id, item);
+      }
+    }
+    const items = Array.from(uniqueMap.values());
+
+    const top = items.slice(0, perPage);
 
     // 1. Check DB cache
     const githubIds = top.map((r) => r.id);

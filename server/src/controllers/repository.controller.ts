@@ -21,13 +21,15 @@ export class RepositoryController {
         return;
       }
 
-      const { language, framework, page, per_page } = parseResult.data.query;
+      const { language, framework, page, per_page, sort, order } = parseResult.data.query;
 
       const repos = await GitHubService.searchRepositories(
         language,
         framework,
         page,
-        per_page
+        per_page,
+        sort,
+        order
       );
 
       res.status(200).json({
@@ -42,7 +44,15 @@ export class RepositoryController {
       });
     } catch (error: any) {
       logger.error(error, 'Error searching repositories');
-      res.status(500).json({
+      
+      let status = 500;
+      if (error.message.includes('Rate Limit Exceeded')) {
+        status = 403;
+      } else if (error.message.includes('Timeout')) {
+        status = 504;
+      }
+
+      res.status(status).json({
         success: false,
         message: error.message || 'An error occurred while fetching repositories',
       });
@@ -79,7 +89,15 @@ export class RepositoryController {
     } catch (error: any) {
       logger.error(error, `Error fetching repository details for ${req.params.owner}/${req.params.repo}`);
       
-      const status = error.message.includes('404') ? 404 : 500;
+      let status = 500;
+      if (error.message.includes('404')) {
+        status = 404;
+      } else if (error.message.includes('Rate Limit Exceeded')) {
+        status = 403;
+      } else if (error.message.includes('Timeout')) {
+        status = 504;
+      }
+
       res.status(status).json({
         success: false,
         message: error.message || 'An error occurred while fetching repository details',

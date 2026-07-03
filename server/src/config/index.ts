@@ -11,6 +11,7 @@ const envSchema = z.object({
   GITHUB_TOKEN: z.string().optional(),
   GITHUB_API_URL: z.string().url().default('https://api.github.com'),
   DATABASE_URL: z.string().url(),
+  REQUEST_TIMEOUT: z.coerce.number().default(10000),
 });
 
 const parseResult = envSchema.safeParse(process.env);
