@@ -31,12 +31,13 @@ export function rankRepositories(
         comparison = (scoreMap.get(a.id) || 0) - (scoreMap.get(b.id) || 0);
         break;
       case 'relevance':
-      default:
+      default: {
         // Relevance uses a combination of stars, activity, and friendliness
         const relA = a.stars * 0.1 + a.activityScore * 0.45 + a.friendlinessScore * 0.45;
         const relB = b.stars * 0.1 + b.activityScore * 0.45 + b.friendlinessScore * 0.45;
         comparison = relA - relB;
         break;
+      }
     }
 
     return order === 'desc' ? -comparison : comparison;

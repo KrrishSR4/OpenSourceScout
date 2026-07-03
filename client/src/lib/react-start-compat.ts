@@ -5,11 +5,11 @@ export function useServerFn<T extends (...args: any[]) => any>(fn: T): T {
 
 export function createServerFn(options?: any) {
   return {
-    inputValidator(validatorFn: any) {
+    inputValidator<TInput>(validatorFn: (input: any) => TInput) {
       return {
-        handler(handlerFn: any) {
+        handler<TResult>(handlerFn: (args: { data: TInput }) => Promise<TResult>) {
           // Simply call the handler function directly on the client side
-          return async (args: any) => {
+          return async (args: { data: TInput }) => {
             return handlerFn(args);
           };
         }

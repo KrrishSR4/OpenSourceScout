@@ -1,0 +1,115 @@
+name: Node.js CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validate-backend:
+    name: Validate Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install Dependencies
+        run: |
+          cd server
+          npm ci
+
+      - name: Generate Prisma Client
+        run: |
+          cd server
+          npx prisma generate
+
+      - name: Run Lint
+        run: |
+          cd server
+          npm run lint
+
+      - name: Run Type Check / Build
+        run: |
+          cd server
+          npm run build
+
+  validate-frontend:
+    name: Validate Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install Dependencies
+        run: |
+          cd client
+          npm ci
+
+      - name: Run Lint
+        run: |
+          cd client
+          npm run lint
+
+      - name: Run Type Check
+        run: |
+          cd client
+          npx tsc --noEmit
+
+      - name: Run Build
+        run: |
+          cd client
+          npm run build
+
+  docker-validation:
+    name: Docker Build Validation
+    runs-on: ubuntu-latest
+    needs: [validate-backend, validate-frontend]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Server Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.server
+          push: false
+
+      - name: Build Client Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.client
+          push: false
+
+  deploy:
+    name: Production Deployment (Placeholder)
+    runs-on: ubuntu-latest
+    needs: [docker-validation]
+    if: false # Disabled: to be configured in a later sprint
+
+    steps:
+      - name: Deploy Application
+        run: |
+          echo "Future deployment step goes here"
