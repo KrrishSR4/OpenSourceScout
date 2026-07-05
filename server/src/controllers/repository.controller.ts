@@ -14,6 +14,13 @@ export class RepositoryController {
       const parseResult = searchReposSchema.safeParse({ query: req.query });
 
       if (!parseResult.success) {
+        logger.warn({
+          ip: req.ip,
+          url: req.originalUrl,
+          query: req.query,
+          errors: parseResult.error.format(),
+        }, 'Validation failure: search query validation failed');
+
         res.status(400).json({
           success: false,
           message: 'Invalid request query parameters',
@@ -69,6 +76,13 @@ export class RepositoryController {
       const parseResult = getRepoDetailsSchema.safeParse({ params: req.params });
 
       if (!parseResult.success) {
+        logger.warn({
+          ip: req.ip,
+          url: req.originalUrl,
+          params: req.params,
+          errors: parseResult.error.format(),
+        }, 'Validation failure: repository details params validation failed');
+
         res.status(400).json({
           success: false,
           message: 'Invalid request parameters',
