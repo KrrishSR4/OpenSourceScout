@@ -1,0 +1,2 @@
+# Proxy API requests to the Render backend server
+/api/* https://<YOUR_RENDER_BACKEND_URL>/api/:splat 200
