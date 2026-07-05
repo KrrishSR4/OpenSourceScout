@@ -577,12 +577,12 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
           <ExternalLink className="h-3.5 w-3.5" /> Visit Repository
         </a>
         <a
-          href={repo.url}
+          href={`${repo.url}/issues`}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs font-medium text-ink hover:bg-secondary"
         >
-          <Github className="h-3.5 w-3.5" /> Open in GitHub
+          <CircleDot className="h-3.5 w-3.5 text-emerald-500" /> View Issues
         </a>
         {repo.topics.length > 0 && (
           <button
