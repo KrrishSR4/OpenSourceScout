@@ -285,18 +285,25 @@ flowchart TD
 
 ```
 OpenSourceScout/
-├── public/
-├── src/
-│   ├── components/       # Reusable UI components
-│   ├── hooks/            # Custom React hooks
-│   ├── lib/              # Utility functions & helpers
-│   ├── routes/           # TanStack Router route files
-│   ├── router.tsx        # Router configuration
-│   ├── main.tsx          # Application entry point
-│   └── styles.css        # Global styles
-├── package.json
-├── vite.config.ts
-├── tsconfig.json
+├── client/              # React frontend workspace (Vite + TypeScript)
+│   ├── public/          # Static assets & redirects
+│   ├── src/             # Frontend source code
+│   │   ├── components/  # Reusable UI components
+│   │   ├── hooks/       # Custom React hooks
+│   │   ├── lib/         # API functions & shims
+│   │   └── routes/      # TanStack Router page views
+│   └── package.json
+├── server/              # Express backend workspace (TypeScript + Node.js)
+│   ├── prisma/          # Database schema & migrations (PostgreSQL)
+│   ├── src/             # Backend source code
+│   │   ├── controllers/ # Request controllers
+│   │   ├── services/    # Business & GitHub API logic
+│   │   ├── routes/      # Versioned routes & endpoints
+│   │   └── middlewares/ # CORS, validation, & rate limiting
+│   └── package.json
+├── docker/              # Multi-container orchestration (Docker Compose)
+├── monitoring/          # Observability stack (Prometheus & Grafana)
+├── nginx/               # Reverse proxy gateway configuration
 └── README.md
 ```
 
@@ -311,31 +318,45 @@ git clone https://github.com/KrrishSR4/OpenSourceScout.git
 cd OpenSourceScout
 ```
 
-### 2. Install Dependencies
+### 2. Run with Docker Compose (Recommended)
+
+Start the entire stack including Frontend, Backend, and Redis with a single command:
 
 ```bash
+# Provide environment variables in your environment or a .env file
+export DATABASE_URL="postgresql://user:pass@host:port/db"
+export GITHUB_TOKEN="your_github_token"
+
+docker compose -f docker/docker-compose.yml up --build
+```
+
+### 3. Run Manually (Local Development)
+
+#### Setup Backend
+```bash
+cd server
 npm install
-```
 
-### 3. Setup Environment Variables
+# Configure environment variables in server/.env:
+# DATABASE_URL="postgresql://user:pass@host:port/db"
+# REDIS_URL="redis://localhost:6379"
+# GITHUB_TOKEN="your_github_token"
 
-```bash
-# Create a .env file in root directory
-VITE_GITHUB_TOKEN=your_github_token_here
-```
+# Sync Prisma database schema & generate client
+npx prisma db push
+npx prisma generate
 
-> Generate your GitHub token from [GitHub Settings - Developer Settings - Personal Access Tokens](https://github.com/settings/tokens)
-
-### 4. Run Development Server
-
-```bash
+# Start Express Dev Server
 npm run dev
 ```
 
-### 5. Production Build
-
+#### Setup Frontend
 ```bash
-npm run build
+cd ../client
+npm install
+
+# Start Vite React Dev Server
+npm run dev
 ```
 
 ---
