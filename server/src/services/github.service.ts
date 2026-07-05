@@ -1,8 +1,8 @@
 import { config } from '../config';
 import { Repo, GhRepo } from '../types/github.types';
 import { logger } from '../lib/logger';
-
 import { prisma } from '../lib/prisma';
+import { githubRequestsTotal, githubErrorsTotal } from '../lib/metrics';
 
 export class GitHubService {
   private static getHeaders(): Record<string, string> {
@@ -31,6 +31,26 @@ export class GitHubService {
     }
   }
 
+  private static sanitizeUrlForMetrics(url: string): string {
+    try {
+      const parsed = new URL(url);
+      let path = parsed.pathname;
+      if (path.startsWith('/repos/')) {
+        const parts = path.split('/');
+        if (parts.length >= 3) {
+          parts[2] = ':owner';
+        }
+        if (parts.length >= 4) {
+          parts[3] = ':repo';
+        }
+        path = parts.join('/');
+      }
+      return path;
+    } catch {
+      return url;
+    }
+  }
+
   private static clamp(n: number, min = 0, max = 100): number {
     return Math.max(min, Math.min(max, n));
   }
@@ -44,6 +64,10 @@ export class GitHubService {
    */
   private static async ghFetch(url: string, retries = 3, delayMs = 1000): Promise<any> {
     const headers = this.getHeaders();
+    const sanitizedUrl = this.sanitizeUrlForMetrics(url);
+
+    logger.info({ url: sanitizedUrl, method: 'GET' }, `GitHub API Call: GET ${url}`);
+    githubRequestsTotal.inc({ url: sanitizedUrl, method: 'GET' });
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       const signal = AbortSignal.timeout(config.REQUEST_TIMEOUT);
@@ -53,6 +77,8 @@ export class GitHubService {
 
         if (!res.ok) {
           const text = await res.text().catch(() => '');
+          githubErrorsTotal.inc({ url: sanitizedUrl, method: 'GET', error: `Status ${res.status}` });
+
           if (res.status === 403 && res.headers.get('x-ratelimit-remaining') === '0') {
             const resetTime = res.headers.get('x-ratelimit-reset');
             throw new Error(
@@ -82,6 +108,8 @@ export class GitHubService {
           continue;
         }
 
+        githubErrorsTotal.inc({ url: sanitizedUrl, method: 'GET', error: error.message || 'unknown' });
+
         if (isTimeout) {
           throw new Error(`GitHub API Request Timeout after ${config.REQUEST_TIMEOUT}ms`);
         }
@@ -95,6 +123,10 @@ export class GitHubService {
    */
   private static async ghCount(url: string, retries = 3, delayMs = 1000): Promise<number> {
     const headers = this.getHeaders();
+    const sanitizedUrl = this.sanitizeUrlForMetrics(url);
+
+    logger.info({ url: sanitizedUrl, method: 'GET' }, `GitHub API Call (Count): GET ${url}`);
+    githubRequestsTotal.inc({ url: sanitizedUrl, method: 'GET' });
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       const signal = AbortSignal.timeout(config.REQUEST_TIMEOUT);
@@ -103,6 +135,8 @@ export class GitHubService {
         await this.checkRateLimit(res.headers);
 
         if (!res.ok) {
+          githubErrorsTotal.inc({ url: sanitizedUrl, method: 'GET', error: `Status ${res.status}` });
+
           if (res.status >= 500 && attempt < retries) {
             await new Promise((resolve) => setTimeout(resolve, delayMs));
             continue;
@@ -124,6 +158,8 @@ export class GitHubService {
           await new Promise((resolve) => setTimeout(resolve, delayMs));
           continue;
         }
+
+        githubErrorsTotal.inc({ url: sanitizedUrl, method: 'GET', error: error.message || 'unknown' });
         return 0;
       }
     }

@@ -1,6 +1,7 @@
 import { redis } from '../lib/redis';
 import { config } from '../config';
 import { logger } from '../lib/logger';
+import { cacheHitsTotal, cacheMissesTotal } from '../lib/metrics';
 
 export class CacheService {
   /**
@@ -12,10 +13,12 @@ export class CacheService {
     try {
       const data = await redis.get(key);
       if (data) {
-        logger.info(`CACHE_HIT for key: ${key}`);
+        logger.info({ key }, `CACHE_HIT for key: ${key}`);
+        cacheHitsTotal.inc();
         return JSON.parse(data) as T;
       }
-      logger.info(`CACHE_MISS for key: ${key}`);
+      logger.info({ key }, `CACHE_MISS for key: ${key}`);
+      cacheMissesTotal.inc();
     } catch (error) {
       logger.error(error, `Failed to get cache for key: ${key}`);
     }
