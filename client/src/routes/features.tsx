@@ -8,12 +8,36 @@ export const Route = createFileRoute("/features")({
 });
 
 const feats = [
-  { icon: Search, title: "Smart Language Detection", desc: "Type your language — we suggest the frameworks worth your time." },
-  { icon: Layers, title: "Framework Recommendations", desc: "Hand-curated frameworks per ecosystem." },
-  { icon: Sparkles, title: "Good First Issues Discovery", desc: "Live counts of welcoming, beginner-friendly tickets." },
-  { icon: Gauge, title: "Difficulty Analysis", desc: "Onboarding effort scored from stars, issues, and labels." },
-  { icon: Activity, title: "Repository Growth Tracking", desc: "Momentum and freshness, distilled into a single pulse." },
-  { icon: Heart, title: "Community Health Insights", desc: "Friendliness from GFI density and maintainer activity." },
+  {
+    icon: Search,
+    title: "Smart Language Detection",
+    desc: "Type your language — we suggest the frameworks worth your time.",
+  },
+  {
+    icon: Layers,
+    title: "Framework Recommendations",
+    desc: "Hand-curated frameworks per ecosystem.",
+  },
+  {
+    icon: Sparkles,
+    title: "Good First Issues Discovery",
+    desc: "Live counts of welcoming, beginner-friendly tickets.",
+  },
+  {
+    icon: Gauge,
+    title: "Difficulty Analysis",
+    desc: "Onboarding effort scored from stars, issues, and labels.",
+  },
+  {
+    icon: Activity,
+    title: "Repository Growth Tracking",
+    desc: "Momentum and freshness, distilled into a single pulse.",
+  },
+  {
+    icon: Heart,
+    title: "Community Health Insights",
+    desc: "Friendliness from GFI density and maintainer activity.",
+  },
 ];
 
 function Features() {
@@ -34,14 +58,19 @@ function Features() {
               transition={{ delay: i * 0.06 }}
               className="rounded-2xl border border-border bg-surface p-7 hover:-translate-y-0.5 hover:shadow-[var(--shadow-elegant)] transition"
             >
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-ink"><f.icon className="h-5 w-5" /></div>
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-secondary text-ink">
+                <f.icon className="h-5 w-5" />
+              </div>
               <h3 className="mt-5 text-lg font-semibold text-ink">{f.title}</h3>
               <p className="mt-2 text-sm text-muted-foreground">{f.desc}</p>
             </motion.div>
           ))}
         </div>
         <div className="mt-14">
-          <Link to="/explore" className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-white">
+          <Link
+            to="/explore"
+            className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-medium text-white"
+          >
             Try it now <ArrowRight className="h-4 w-4" />
           </Link>
         </div>

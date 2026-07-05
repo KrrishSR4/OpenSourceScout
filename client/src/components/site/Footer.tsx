@@ -53,8 +53,8 @@ export function Footer() {
             </span>
           </div>
           <p className="mt-4 max-w-md text-sm text-muted-foreground">
-            A maximalist discovery surface for open source. Built for developers
-            who want to ship their first meaningful contribution — and keep going.
+            A maximalist discovery surface for open source. Built for developers who want to ship
+            their first meaningful contribution — and keep going.
           </p>
           <div className="mt-5 flex items-center gap-2">
             <a
@@ -68,18 +68,42 @@ export function Footer() {
           </div>
         </div>
         <div>
-          <h4 className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-accent)]">/ Product</h4>
+          <h4 className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-accent)]">
+            / Product
+          </h4>
           <ul className="mt-4 space-y-2 text-sm">
-            <li><Link to="/explore" className="story-link text-muted-foreground hover:text-ink">Explore</Link></li>
-            <li><Link to="/features" className="story-link text-muted-foreground hover:text-ink">Features</Link></li>
-            <li><Link to="/docs" className="story-link text-muted-foreground hover:text-ink">Docs</Link></li>
+            <li>
+              <Link to="/explore" className="story-link text-muted-foreground hover:text-ink">
+                Explore
+              </Link>
+            </li>
+            <li>
+              <Link to="/features" className="story-link text-muted-foreground hover:text-ink">
+                Features
+              </Link>
+            </li>
+            <li>
+              <Link to="/docs" className="story-link text-muted-foreground hover:text-ink">
+                Docs
+              </Link>
+            </li>
           </ul>
         </div>
         <div>
-          <h4 className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-accent-2)]">/ Company</h4>
+          <h4 className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--color-accent-2)]">
+            / Company
+          </h4>
           <ul className="mt-4 space-y-2 text-sm">
-            <li><Link to="/about" className="story-link text-muted-foreground hover:text-ink">About</Link></li>
-            <li><Link to="/contact" className="story-link text-muted-foreground hover:text-ink">Contact</Link></li>
+            <li>
+              <Link to="/about" className="story-link text-muted-foreground hover:text-ink">
+                About
+              </Link>
+            </li>
+            <li>
+              <Link to="/contact" className="story-link text-muted-foreground hover:text-ink">
+                Contact
+              </Link>
+            </li>
           </ul>
         </div>
       </div>

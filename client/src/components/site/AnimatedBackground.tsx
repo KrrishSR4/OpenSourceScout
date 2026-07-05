@@ -16,10 +16,18 @@ export function AnimatedBackground() {
   return (
     <div className="pointer-events-none fixed inset-0 z-0 select-none overflow-hidden bg-transparent">
       {/* 1. Background Grid Paper Pattern */}
-      <svg className="absolute inset-0 h-full w-full opacity-[0.12]" xmlns="http://www.w3.org/2000/svg">
+      <svg
+        className="absolute inset-0 h-full w-full opacity-[0.12]"
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <defs>
           <pattern id="bg-grid" width="50" height="50" patternUnits="userSpaceOnUse">
-            <path d="M 50 0 L 0 0 0 50" fill="none" stroke="var(--color-foreground)" strokeWidth="1" />
+            <path
+              d="M 50 0 L 0 0 0 50"
+              fill="none"
+              stroke="var(--color-foreground)"
+              strokeWidth="1"
+            />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#bg-grid)" />
@@ -126,51 +134,98 @@ export function AnimatedBackground() {
 
       {/* 3. Centered Git Commit Branch Timeline (Thematic developer graphic) */}
       <div className="absolute left-1/2 top-[35%] -translate-x-1/2 -translate-y-1/2 w-[320px] sm:w-[600px] h-[100px] opacity-25 flex justify-center items-center">
-        <svg className="w-full h-full text-foreground/40" viewBox="0 0 600 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg
+          className="w-full h-full text-foreground/40"
+          viewBox="0 0 600 100"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
           {/* Main trunk line */}
-          <line x1="50" y1="50" x2="550" y2="50" stroke="currentColor" strokeWidth="1.5" strokeDasharray="5 5" strokeOpacity="0.4" />
-          
+          <line
+            x1="50"
+            y1="50"
+            x2="550"
+            y2="50"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeDasharray="5 5"
+            strokeOpacity="0.4"
+          />
+
           {/* Branch line */}
-          <path d="M 200,50 Q 250,15 300,15 Q 350,15 400,50" stroke="var(--color-accent-3)" strokeWidth="1.5" strokeDasharray="3 3" strokeOpacity="0.6" />
-          
+          <path
+            d="M 200,50 Q 250,15 300,15 Q 350,15 400,50"
+            stroke="var(--color-accent-3)"
+            strokeWidth="1.5"
+            strokeDasharray="3 3"
+            strokeOpacity="0.6"
+          />
+
           {/* Commit Node 1: Initial Commit */}
           <circle cx="150" cy="50" r="5" fill="var(--color-accent-4)" />
-          <motion.circle 
-            cx="150" 
-            cy="50" 
-            r="10" 
-            stroke="var(--color-accent-4)" 
-            strokeWidth="1" 
-            animate={{ scale: [1, 2, 1], opacity: [0.7, 0, 0.7] }} 
-            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }} 
+          <motion.circle
+            cx="150"
+            cy="50"
+            r="10"
+            stroke="var(--color-accent-4)"
+            strokeWidth="1"
+            animate={{ scale: [1, 2, 1], opacity: [0.7, 0, 0.7] }}
+            transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
           />
-          <text x="110" y="72" fill="currentColor" opacity="0.4" fontSize="8" fontFamily="var(--font-mono)">initial_commit</text>
+          <text
+            x="110"
+            y="72"
+            fill="currentColor"
+            opacity="0.4"
+            fontSize="8"
+            fontFamily="var(--font-mono)"
+          >
+            initial_commit
+          </text>
 
           {/* Commit Node 2: Feature Branch commit */}
           <circle cx="300" cy="15" r="5" fill="var(--color-accent)" />
-          <motion.circle 
-            cx="300" 
-            cy="15" 
-            r="10" 
-            stroke="var(--color-accent)" 
-            strokeWidth="1" 
-            animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }} 
-            transition={{ repeat: Infinity, duration: 2.5, delay: 0.5, ease: "easeInOut" }} 
+          <motion.circle
+            cx="300"
+            cy="15"
+            r="10"
+            stroke="var(--color-accent)"
+            strokeWidth="1"
+            animate={{ scale: [1, 1.8, 1], opacity: [0.6, 0, 0.6] }}
+            transition={{ repeat: Infinity, duration: 2.5, delay: 0.5, ease: "easeInOut" }}
           />
-          <text x="260" y="32" fill="currentColor" opacity="0.4" fontSize="8" fontFamily="var(--font-mono)">feature/explore</text>
+          <text
+            x="260"
+            y="32"
+            fill="currentColor"
+            opacity="0.4"
+            fontSize="8"
+            fontFamily="var(--font-mono)"
+          >
+            feature/explore
+          </text>
 
           {/* Commit Node 3: HEAD -> main */}
           <circle cx="450" cy="50" r="6" fill="var(--color-accent-2)" />
-          <motion.circle 
-            cx="450" 
-            cy="50" 
-            r="12" 
-            stroke="var(--color-accent-2)" 
-            strokeWidth="1" 
-            animate={{ scale: [1, 2.2, 1], opacity: [0.8, 0, 0.8] }} 
-            transition={{ repeat: Infinity, duration: 3.5, delay: 1, ease: "easeInOut" }} 
+          <motion.circle
+            cx="450"
+            cy="50"
+            r="12"
+            stroke="var(--color-accent-2)"
+            strokeWidth="1"
+            animate={{ scale: [1, 2.2, 1], opacity: [0.8, 0, 0.8] }}
+            transition={{ repeat: Infinity, duration: 3.5, delay: 1, ease: "easeInOut" }}
           />
-          <text x="415" y="72" fill="currentColor" opacity="0.4" fontSize="8" fontFamily="var(--font-mono)">{"HEAD -> main"}</text>
+          <text
+            x="415"
+            y="72"
+            fill="currentColor"
+            opacity="0.4"
+            fontSize="8"
+            fontFamily="var(--font-mono)"
+          >
+            {"HEAD -> main"}
+          </text>
         </svg>
       </div>
 
@@ -210,22 +265,18 @@ export function AnimatedBackground() {
       </div>
 
       {/* 5. CENTERED GitHub Contribution Streak Graph */}
-      <div 
-        className="absolute left-1/2 -translate-x-1/2 bottom-8 opacity-35 transition-opacity hover:opacity-60 flex justify-center items-center px-4 w-full overflow-hidden"
-      >
+      <div className="absolute left-1/2 -translate-x-1/2 bottom-8 opacity-35 transition-opacity hover:opacity-60 flex justify-center items-center px-4 w-full overflow-hidden">
         <div className="grid grid-flow-col grid-rows-7 gap-[3.5px] scale-90 sm:scale-100">
           {contributionGridCenter.map((_, i) => {
             const colors = [
-              "rgba(255, 255, 255, 0.05)", 
-              "rgba(138, 225, 60, 0.25)", 
-              "rgba(138, 225, 60, 0.5)", 
-              "rgba(138, 225, 60, 0.8)", 
-              "var(--color-accent-2)"
+              "rgba(255, 255, 255, 0.05)",
+              "rgba(138, 225, 60, 0.25)",
+              "rgba(138, 225, 60, 0.5)",
+              "rgba(138, 225, 60, 0.8)",
+              "var(--color-accent-2)",
             ];
             const randIdx = Math.floor(
-              Math.random() * 2 === 0 
-                ? Math.random() * 2 
-                : Math.random() * colors.length
+              Math.random() * 2 === 0 ? Math.random() * 2 : Math.random() * colors.length,
             );
             return (
               <motion.div

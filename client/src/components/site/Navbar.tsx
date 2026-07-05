@@ -43,7 +43,9 @@ export function Navbar() {
               key={l.to}
               to={l.to}
               className="group relative rounded-full px-3.5 py-1.5 text-sm text-muted-foreground transition-colors hover:text-ink"
-              activeProps={{ className: "rounded-full px-3.5 py-1.5 text-sm text-ink bg-secondary" }}
+              activeProps={{
+                className: "rounded-full px-3.5 py-1.5 text-sm text-ink bg-secondary",
+              }}
               activeOptions={{ exact: true }}
             >
               <span className="relative z-10">{l.label}</span>
@@ -59,7 +61,10 @@ export function Navbar() {
           style={{ boxShadow: "3px 3px 0 0 var(--color-ink)" }}
         >
           <span className="relative z-10">Explore Repositories</span>
-          <ArrowUpRight className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2.5} />
+          <ArrowUpRight
+            className="relative z-10 h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            strokeWidth={2.5}
+          />
         </Link>
 
         {/* Hamburger Menu Button - Visible on mobile/tablets (< md) */}
@@ -89,7 +94,9 @@ export function Navbar() {
                   to={l.to}
                   onClick={() => setIsOpen(false)}
                   className="text-base font-semibold text-muted-foreground transition-colors hover:text-ink py-1"
-                  activeProps={{ className: "text-base font-bold text-[var(--color-accent-2)] py-1" }}
+                  activeProps={{
+                    className: "text-base font-bold text-[var(--color-accent-2)] py-1",
+                  }}
                   activeOptions={{ exact: true }}
                 >
                   {l.label}
@@ -102,7 +109,10 @@ export function Navbar() {
                 className="group relative flex items-center justify-center gap-2 rounded-xl border-2 border-ink bg-[var(--color-accent)] py-3 text-sm font-bold text-[var(--color-background)] shadow-[4px_4px_0_0_var(--color-ink)]"
               >
                 <span>Explore Repositories</span>
-                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2.5} />
+                <ArrowUpRight
+                  className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  strokeWidth={2.5}
+                />
               </Link>
             </div>
           </motion.div>

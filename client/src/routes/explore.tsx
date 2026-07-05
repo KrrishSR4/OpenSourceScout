@@ -35,7 +35,9 @@ function ExplorePage() {
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<string>("");
   const [competition, setCompetition] = useState<"all" | "Low" | "Medium" | "High">("all");
-  const [difficulty, setDifficulty] = useState<"all" | "Beginner" | "Intermediate" | "Advanced">("all");
+  const [difficulty, setDifficulty] = useState<"all" | "Beginner" | "Intermediate" | "Advanced">(
+    "all",
+  );
 
   const callSearch = useServerFn(searchRepos);
   const mutation = useMutation({
@@ -72,7 +74,7 @@ function ExplorePage() {
     setLanguage(langKey);
   }, [langKey]);
 
-  const frameworks = langKey ? FRAMEWORKS[langKey] ?? [] : [];
+  const frameworks = langKey ? (FRAMEWORKS[langKey] ?? []) : [];
 
   function pickLanguage(name: string, key: string) {
     setLanguageInput(name);
@@ -94,10 +96,12 @@ function ExplorePage() {
         <div className="mx-auto max-w-6xl px-6 pt-16 pb-10">
           <div className="text-xs uppercase tracking-widest text-muted-foreground">Discovery</div>
           <h1 className="mt-3 font-display text-5xl tracking-tight text-ink md:text-6xl">
-            Explore <span className="italic text-muted-foreground">repositories</span> worth contributing to.
+            Explore <span className="italic text-muted-foreground">repositories</span> worth
+            contributing to.
           </h1>
           <p className="mt-4 max-w-2xl text-muted-foreground">
-            Pick your language, then a framework. We surface real GitHub repos with friendly maintainers and live good-first-issues.
+            Pick your language, then a framework. We surface real GitHub repos with friendly
+            maintainers and live good-first-issues.
           </p>
 
           {/* Search panel */}
@@ -148,9 +152,13 @@ function ExplorePage() {
                   className="flex h-14 w-full items-center justify-between rounded-2xl border border-border bg-secondary/60 px-4 text-sm text-ink transition disabled:opacity-50 hover:bg-surface"
                 >
                   <span className={framework ? "" : "text-muted-foreground"}>
-                    {framework ? frameworks.find((f) => f.topic === framework)?.name : "Choose framework"}
+                    {framework
+                      ? frameworks.find((f) => f.topic === framework)?.name
+                      : "Choose framework"}
                   </span>
-                  <ChevronDown className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`} />
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
+                  />
                 </button>
                 <AnimatePresence>
                   {open && language && (
@@ -213,7 +221,9 @@ function ExplorePage() {
 
             {/* Quick languages */}
             <div className="mt-4 flex flex-wrap items-center gap-2 px-1">
-              <span className="text-xs uppercase tracking-widest text-muted-foreground">Popular</span>
+              <span className="text-xs uppercase tracking-widest text-muted-foreground">
+                Popular
+              </span>
               {LANGUAGES.slice(0, 8).map((l) => (
                 <button
                   key={l.key}
@@ -302,7 +312,8 @@ function ExplorePage() {
                 };
                 return all.length === 0 ? (
                   <div className="rounded-2xl border border-border bg-surface p-10 text-center text-muted-foreground">
-                    No repositories matched. Try removing the framework, or pick a different language.
+                    No repositories matched. Try removing the framework, or pick a different
+                    language.
                   </div>
                 ) : (
                   <>
@@ -310,7 +321,9 @@ function ExplorePage() {
                       <h2 className="font-display text-2xl text-ink">
                         {filtered.length} of {all.length} repositories
                       </h2>
-                      <span className="text-xs text-muted-foreground">Sorted by stars · live data</span>
+                      <span className="text-xs text-muted-foreground">
+                        Sorted by stars · live data
+                      </span>
                     </div>
                     <div className="mb-6 flex flex-wrap items-center gap-6">
                       <div className="flex flex-wrap items-center gap-2">
@@ -320,9 +333,13 @@ function ExplorePage() {
                         {(["all", "Low", "Medium", "High"] as const).map((c) => {
                           const active = competition === c;
                           const dot =
-                            c === "Low" ? "var(--color-accent-2)" :
-                            c === "Medium" ? "var(--color-accent)" :
-                            c === "High" ? "var(--color-accent-3)" : "var(--color-muted-foreground)";
+                            c === "Low"
+                              ? "var(--color-accent-2)"
+                              : c === "Medium"
+                                ? "var(--color-accent)"
+                                : c === "High"
+                                  ? "var(--color-accent-3)"
+                                  : "var(--color-muted-foreground)";
                           return (
                             <button
                               key={c}
@@ -333,7 +350,10 @@ function ExplorePage() {
                                   : "border-border bg-surface text-muted-foreground hover:border-ink hover:text-ink"
                               }`}
                             >
-                              <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} />
+                              <span
+                                className="h-1.5 w-1.5 rounded-full"
+                                style={{ background: dot }}
+                              />
                               {c === "all" ? "All" : c}
                               <span className="font-mono text-[10px] opacity-70">{counts[c]}</span>
                             </button>
@@ -348,9 +368,13 @@ function ExplorePage() {
                         {(["all", "Beginner", "Intermediate", "Advanced"] as const).map((d) => {
                           const active = difficulty === d;
                           const dot =
-                            d === "Beginner" ? "var(--color-accent-2)" :
-                            d === "Intermediate" ? "var(--color-accent)" :
-                            d === "Advanced" ? "var(--color-accent-3)" : "var(--color-muted-foreground)";
+                            d === "Beginner"
+                              ? "var(--color-accent-2)"
+                              : d === "Intermediate"
+                                ? "var(--color-accent)"
+                                : d === "Advanced"
+                                  ? "var(--color-accent-3)"
+                                  : "var(--color-muted-foreground)";
                           return (
                             <button
                               key={d}
@@ -361,9 +385,14 @@ function ExplorePage() {
                                   : "border-border bg-surface text-muted-foreground hover:border-ink hover:text-ink"
                               }`}
                             >
-                              <span className="h-1.5 w-1.5 rounded-full" style={{ background: dot }} />
+                              <span
+                                className="h-1.5 w-1.5 rounded-full"
+                                style={{ background: dot }}
+                              />
                               {d === "all" ? "All" : d}
-                              <span className="font-mono text-[10px] opacity-70">{diffCounts[d]}</span>
+                              <span className="font-mono text-[10px] opacity-70">
+                                {diffCounts[d]}
+                              </span>
                             </button>
                           );
                         })}
@@ -397,7 +426,10 @@ function ExplorePage() {
               <p className="mt-3 font-display text-2xl text-ink">Pick a language to get started</p>
               <p className="mt-2 text-sm text-muted-foreground">
                 Try{" "}
-                <button onClick={() => pickLanguage("TypeScript", "typescript")} className="underline">
+                <button
+                  onClick={() => pickLanguage("TypeScript", "typescript")}
+                  className="underline"
+                >
                   TypeScript
                 </button>{" "}
                 or{" "}
@@ -449,14 +481,16 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
 
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <img src={repo.owner.avatar} alt={repo.owner.login} className="h-10 w-10 rounded-lg border border-border" />
+          <img
+            src={repo.owner.avatar}
+            alt={repo.owner.login}
+            className="h-10 w-10 rounded-lg border border-border"
+          />
           <div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {repo.owner.login}
             </div>
-            <h3 className="font-display text-xl tracking-tight text-ink">
-              {repo.name}
-            </h3>
+            <h3 className="font-display text-xl tracking-tight text-ink">{repo.name}</h3>
           </div>
         </div>
         <DifficultyBadge level={repo.difficulty} />
@@ -467,17 +501,35 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1"><Star className="h-3.5 w-3.5" />{compact(repo.stars)}</span>
-        <span className="inline-flex items-center gap-1"><GitFork className="h-3.5 w-3.5" />{compact(repo.forks)}</span>
-        <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5 text-[var(--color-accent-4)]" />{compact(repo.contributors)} contributors</span>
-        <span className="inline-flex items-center gap-1"><CircleDot className="h-3.5 w-3.5 text-emerald-500" />{repo.openIssues} open</span>
-        <span className="inline-flex items-center gap-1"><Sparkles className="h-3.5 w-3.5 text-[var(--color-accent-2)]" />{repo.goodFirstIssues} GFI</span>
+        <span className="inline-flex items-center gap-1">
+          <Star className="h-3.5 w-3.5" />
+          {compact(repo.stars)}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <GitFork className="h-3.5 w-3.5" />
+          {compact(repo.forks)}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <Users className="h-3.5 w-3.5 text-[var(--color-accent-4)]" />
+          {compact(repo.contributors)} contributors
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <CircleDot className="h-3.5 w-3.5 text-emerald-500" />
+          {repo.openIssues} open
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <Sparkles className="h-3.5 w-3.5 text-[var(--color-accent-2)]" />
+          {repo.goodFirstIssues} GFI
+        </span>
         {repo.language && (
           <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-ink">
             {repo.language}
           </span>
         )}
-        <span className="inline-flex items-center gap-1"><Clock className="h-3.5 w-3.5" />Updated {days}d ago</span>
+        <span className="inline-flex items-center gap-1">
+          <Clock className="h-3.5 w-3.5" />
+          Updated {days}d ago
+        </span>
       </div>
 
       <div className="mt-3 flex items-center gap-2">
@@ -503,7 +555,10 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
           >
             <div className="mt-4 flex flex-wrap gap-1.5">
               {repo.topics.slice(0, 10).map((t) => (
-                <span key={t} className="rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground">
+                <span
+                  key={t}
+                  className="rounded-full border border-border bg-secondary px-2 py-0.5 text-[10px] text-muted-foreground"
+                >
                   #{t}
                 </span>
               ))}
@@ -544,9 +599,11 @@ function RepoCard({ repo, delay }: { repo: Repo; delay: number }) {
 
 function DifficultyBadge({ level }: { level: Repo["difficulty"] }) {
   const color =
-    level === "Beginner" ? "var(--color-accent-2)" :
-    level === "Intermediate" ? "var(--color-accent)" :
-    "var(--color-accent-3)";
+    level === "Beginner"
+      ? "var(--color-accent-2)"
+      : level === "Intermediate"
+        ? "var(--color-accent)"
+        : "var(--color-accent-3)";
   return (
     <span
       className="shrink-0 rounded-full border-2 border-ink px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--color-background)]"
@@ -559,9 +616,11 @@ function DifficultyBadge({ level }: { level: Repo["difficulty"] }) {
 
 function CompetitionBadge({ level }: { level: Repo["competition"] }) {
   const color =
-    level === "Low" ? "var(--color-accent-2)" :
-    level === "Medium" ? "var(--color-accent)" :
-    "var(--color-accent-3)";
+    level === "Low"
+      ? "var(--color-accent-2)"
+      : level === "Medium"
+        ? "var(--color-accent)"
+        : "var(--color-accent-3)";
   return (
     <span
       className="inline-flex items-center gap-1 rounded-full border border-ink px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[var(--color-background)]"
@@ -584,7 +643,10 @@ function MetricBar({
   return (
     <div>
       <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-widest text-muted-foreground">
-        <span className="inline-flex items-center gap-1"><Icon className="h-3 w-3" />{label}</span>
+        <span className="inline-flex items-center gap-1">
+          <Icon className="h-3 w-3" />
+          {label}
+        </span>
         <span className="font-mono text-ink">{value}</span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full bg-secondary">

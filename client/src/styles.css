@@ -50,36 +50,36 @@
   --radius: 0.875rem;
 
   /* pure black canvas — high-contrast maximalism */
-  --background: oklch(0 0 0);                /* pure black */
-  --surface:    oklch(0.16 0.025 35);        /* card / panel */
-  --foreground: oklch(0.96 0.03  85);        /* warm cream */
-  --ink:        oklch(0.98 0.03  85);        /* primary text on dark */
+  --background: oklch(0 0 0); /* pure black */
+  --surface: oklch(0.16 0.025 35); /* card / panel */
+  --foreground: oklch(0.96 0.03 85); /* warm cream */
+  --ink: oklch(0.98 0.03 85); /* primary text on dark */
 
   --card: oklch(0.16 0.025 35);
   --card-foreground: var(--foreground);
   --popover: oklch(0.16 0.025 35);
   --popover-foreground: var(--foreground);
 
-  --primary: oklch(0.82 0.19 75);            /* electric amber */
+  --primary: oklch(0.82 0.19 75); /* electric amber */
   --primary-foreground: oklch(0 0 0);
-  --secondary: oklch(0.20 0.03 35);
+  --secondary: oklch(0.2 0.03 35);
   --secondary-foreground: var(--ink);
 
-  --muted: oklch(0.20 0.03 35);
+  --muted: oklch(0.2 0.03 35);
   --muted-foreground: oklch(0.78 0.04 75);
 
-  --accent:    oklch(0.78 0.22 35);          /* hot vermilion */
+  --accent: oklch(0.78 0.22 35); /* hot vermilion */
   --accent-foreground: oklch(0 0 0);
-  --accent-2:  oklch(0.86 0.21 130);         /* acid lime */
-  --accent-3:  oklch(0.74 0.20 330);         /* hot magenta */
-  --accent-4:  oklch(0.78 0.15 220);         /* electric sky */
+  --accent-2: oklch(0.86 0.21 130); /* acid lime */
+  --accent-3: oklch(0.74 0.2 330); /* hot magenta */
+  --accent-4: oklch(0.78 0.15 220); /* electric sky */
 
   --destructive: oklch(0.65 0.24 27);
   --destructive-foreground: oklch(0.99 0 0);
 
   --border: oklch(0.26 0.03 35);
-  --input:  oklch(0.26 0.03 35);
-  --ring:   oklch(0.82 0.19 75);
+  --input: oklch(0.26 0.03 35);
+  --ring: oklch(0.82 0.19 75);
 }
 
 @layer base {
@@ -97,7 +97,10 @@
     color: var(--color-foreground);
     font-feature-settings: "ss01", "ss02", "cv11";
   }
-  h1, h2, h3, .font-display {
+  h1,
+  h2,
+  h3,
+  .font-display {
     font-family: var(--font-display);
     font-optical-sizing: auto;
     letter-spacing: -0.035em;
@@ -132,9 +135,16 @@
   animation: chroma-cycle 7s ease-in-out infinite;
 }
 @keyframes chroma-cycle {
-  0%, 100% { color: var(--color-accent); }
-  33%      { color: var(--color-accent-2); }
-  66%      { color: var(--color-accent-3); }
+  0%,
+  100% {
+    color: var(--color-accent);
+  }
+  33% {
+    color: var(--color-accent-2);
+  }
+  66% {
+    color: var(--color-accent-3);
+  }
 }
 
 @utility glass {
@@ -144,18 +154,37 @@
 }
 
 @utility grid-bg {
-  background-image:
-    radial-gradient(circle at center, color-mix(in oklab, var(--color-border) 70%, transparent) 1px, transparent 1.5px);
+  background-image: radial-gradient(
+    circle at center,
+    color-mix(in oklab, var(--color-border) 70%, transparent) 1px,
+    transparent 1.5px
+  );
   background-size: 26px 26px;
   mask-image: radial-gradient(ellipse at center, black 25%, transparent 78%);
 }
 
 @utility halo {
   background:
-    radial-gradient(40% 40% at 18% 12%, color-mix(in oklab, var(--color-accent)   45%, transparent) 0%, transparent 70%),
-    radial-gradient(34% 34% at 82% 22%, color-mix(in oklab, var(--color-accent-3) 50%, transparent) 0%, transparent 70%),
-    radial-gradient(40% 40% at 60% 95%, color-mix(in oklab, var(--color-accent-2) 35%, transparent) 0%, transparent 70%),
-    radial-gradient(28% 28% at 12% 80%, color-mix(in oklab, var(--color-accent-4) 35%, transparent) 0%, transparent 70%);
+    radial-gradient(
+      40% 40% at 18% 12%,
+      color-mix(in oklab, var(--color-accent) 45%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      34% 34% at 82% 22%,
+      color-mix(in oklab, var(--color-accent-3) 50%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      40% 40% at 60% 95%,
+      color-mix(in oklab, var(--color-accent-2) 35%, transparent) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      28% 28% at 12% 80%,
+      color-mix(in oklab, var(--color-accent-4) 35%, transparent) 0%,
+      transparent 70%
+    );
 }
 
 @utility grain {
@@ -188,36 +217,71 @@
 }
 
 @keyframes float-slow {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-14px) rotate(0.5deg); }
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(0.5deg);
+  }
 }
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 @keyframes pulse-ring {
-  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 50%, transparent); }
-  100% { box-shadow: 0 0 0 16px transparent; }
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 50%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 16px transparent;
+  }
 }
 @keyframes marquee-x {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
 }
 @keyframes hue-spin {
-  from { filter: hue-rotate(0deg) saturate(1.05); }
-  to   { filter: hue-rotate(360deg) saturate(1.05); }
+  from {
+    filter: hue-rotate(0deg) saturate(1.05);
+  }
+  to {
+    filter: hue-rotate(360deg) saturate(1.05);
+  }
 }
 @keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 @keyframes blob {
-  0%, 100% { border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%; }
-  50%      { border-radius: 65% 35% 45% 55% / 55% 60% 40% 45%; }
+  0%,
+  100% {
+    border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%;
+  }
+  50% {
+    border-radius: 65% 35% 45% 55% / 55% 60% 40% 45%;
+  }
 }
 @keyframes tilt {
-  0%,100% { transform: rotate(-1.5deg); }
-  50%     { transform: rotate(1.5deg); }
+  0%,
+  100% {
+    transform: rotate(-1.5deg);
+  }
+  50% {
+    transform: rotate(1.5deg);
+  }
 }
 
 @utility animate-float {
