@@ -32,7 +32,8 @@ export const searchRepos = createServerFn({ method: "GET" })
     const { language, framework } = data;
     if (!language) return [];
 
-    const url = `/api/v1/repositories?language=${encodeURIComponent(
+    const apiBase = import.meta.env.PROD ? "https://opensourcescout.onrender.com" : "";
+    const url = `${apiBase}/api/v1/repositories?language=${encodeURIComponent(
       language,
     )}&framework=${encodeURIComponent(framework || "")}`;
 
