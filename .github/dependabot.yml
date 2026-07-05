@@ -1,19 +1,70 @@
 version: 2
+
 updates:
-  # Monitor npm packages in the client directory
+  # Frontend Dependencies
   - package-ecosystem: "npm"
     directory: "/client"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+      time: "06:00"
+      timezone: "Asia/Kolkata"
 
-  # Monitor npm packages in the server directory
+    open-pull-requests-limit: 10
+
+    commit-message:
+      prefix: "deps(client)"
+
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "security"
+
+    groups:
+      frontend-dependencies:
+        patterns:
+          - "*"
+
+  # Backend Dependencies
   - package-ecosystem: "npm"
     directory: "/server"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+      time: "06:15"
+      timezone: "Asia/Kolkata"
 
-  # Monitor GitHub Actions
+    open-pull-requests-limit: 10
+
+    commit-message:
+      prefix: "deps(server)"
+
+    labels:
+      - "dependencies"
+      - "backend"
+      - "security"
+
+    groups:
+      backend-dependencies:
+        patterns:
+          - "*"
+
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
+      time: "06:30"
+      timezone: "Asia/Kolkata"
+
+    open-pull-requests-limit: 5
+
+    commit-message:
+      prefix: "ci"
+
+    labels:
+      - "dependencies"
+      - "ci-cd"
+
+    groups:
+      github-actions:
+        patterns:
+          - "*"
