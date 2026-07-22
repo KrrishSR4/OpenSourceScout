@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
-import { useRef } from "react";
+import { motion, useMotionValue, useTransform, useSpring, AnimatePresence } from "framer-motion";
+import { useRef, useState } from "react";
 import {
   Star,
   GitFork,
@@ -17,6 +17,8 @@ import {
   Asterisk,
   Compass,
   Hexagon,
+  Rocket,
+  CheckCircle2,
 } from "lucide-react";
 import { Shell } from "@/components/site/Shell";
 
@@ -683,40 +685,94 @@ function Stats() {
 
 /* ============================== CTA ============================== */
 function CTA() {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const rotateX = useSpring(useTransform(mouseY, [-250, 250], [4, -4]), {
+    stiffness: 200,
+    damping: 25,
+  });
+  const rotateY = useSpring(useTransform(mouseX, [-500, 500], [-5, 5]), {
+    stiffness: 200,
+    damping: 25,
+  });
+
+  const spotlightX = useSpring(mouseX, { stiffness: 150, damping: 20 });
+  const spotlightY = useSpring(mouseY, { stiffness: 150, damping: 20 });
+
+  const [isCompassHovered, setIsCompassHovered] = useState(false);
+  const [isStopHovered, setIsStopHovered] = useState(false);
+  const [isShipHovered, setIsShipHovered] = useState(false);
+  const [isBtnHovered, setIsBtnHovered] = useState(false);
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - (rect.left + rect.width / 2);
+    const y = e.clientY - (rect.top + rect.height / 2);
+    mouseX.set(x);
+    mouseY.set(y);
+  }
+
+  function handleMouseLeave() {
+    mouseX.set(0);
+    mouseY.set(0);
+  }
+
   return (
-    <section className="mx-auto max-w-7xl px-6 py-24">
-      <div
-        className="relative overflow-hidden rounded-[2.5rem] border-2 border-ink bg-ink p-10 md:p-20"
-        style={{ boxShadow: "10px 10px 0 0 var(--color-accent-2)" }}
+    <section className="mx-auto max-w-7xl px-6 py-24 [perspective:1000px]">
+      <motion.div
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+          boxShadow: isBtnHovered
+            ? "14px 14px 0 0 var(--color-accent-2)"
+            : "10px 10px 0 0 var(--color-accent-2)",
+        }}
+        className="group relative overflow-hidden rounded-[2.5rem] border-2 border-ink bg-ink p-10 md:p-20 transition-shadow duration-500"
       >
+        {/* Dynamic Cursor Spotlight Light Field */}
+        <motion.div
+          className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"
+          style={{
+            background: useTransform(
+              [spotlightX, spotlightY],
+              ([x, y]) =>
+                `radial-gradient(650px circle at calc(50% + ${x}px) calc(50% + ${y}px), rgba(192, 240, 0, 0.15), rgba(255, 112, 67, 0.08), transparent 70%)`
+            ),
+          }}
+        />
+
         <div className="pointer-events-none absolute inset-0 halo opacity-50" />
         <div className="grain-overlay" />
-        {/* Beautifully animated multi-layered liquid gradient */}
-        <div className="pointer-events-none absolute -right-32 -top-32 h-[26rem] w-[26rem] overflow-visible select-none">
-          {/* Layer 1: Soft outer pulse */}
+
+        {/* Morphing Liquid Gradient Blobs */}
+        <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] overflow-visible select-none">
+          {/* Outer glow */}
           <motion.div
             className="absolute inset-0 rounded-full"
             animate={{
-              scale: [1, 1.35, 0.9, 1],
-              opacity: [0.35, 0.7, 0.25, 0.35],
+              scale: [1, 1.3, 0.95, 1],
+              opacity: [0.35, 0.7, 0.3, 0.35],
             }}
-            transition={{
-              duration: 6,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             style={{
               background:
                 "radial-gradient(circle at center, var(--color-accent-3) 0%, transparent 70%)",
               filter: "blur(50px)",
             }}
           />
-          {/* Layer 2: Core spinning conic gradient with morphing shape */}
+          {/* Conic liquid core */}
           <motion.div
             className="absolute inset-0 rounded-full"
             animate={{
               rotate: [0, 180, 360],
-              scale: [1, 1.2, 0.85, 1],
+              scale: [1, 1.25, 0.88, 1],
               borderRadius: [
                 "42% 58% 63% 37% / 41% 44% 56% 59%",
                 "70% 30% 52% 48% / 60% 40% 60% 40%",
@@ -724,71 +780,202 @@ function CTA() {
                 "42% 58% 63% 37% / 41% 44% 56% 59%",
               ],
             }}
-            transition={{
-              duration: 10,
-              repeat: Infinity,
-              ease: "linear",
-            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
             style={{
               background:
-                "conic-gradient(from 0deg, var(--color-accent), var(--color-accent-3), var(--color-accent-4), var(--color-accent-2), var(--color-accent))",
+                "conic-gradient(from 0deg, var(--color-accent-2), var(--color-accent-3), var(--color-accent-4), var(--color-accent), var(--color-accent-2))",
               filter: "blur(40px)",
               opacity: 0.75,
             }}
           />
-          {/* Layer 3: Secondary drifting radial highlight */}
+        </div>
+
+        {/* Bottom Left Secondary Ambient Glow Spotlight */}
+        <motion.div
+          className="pointer-events-none absolute -left-20 -bottom-20 h-72 w-72 rounded-full"
+          animate={{
+            scale: [0.9, 1.2, 0.9],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            background:
+              "radial-gradient(circle at center, var(--color-accent-2) 0%, transparent 75%)",
+            filter: "blur(45px)",
+          }}
+        />
+
+        {/* Floating Stat Badges in Background */}
+        <div className="pointer-events-none absolute right-12 top-12 hidden lg:flex flex-col gap-3 items-end z-20">
           <motion.div
-            className="absolute inset-4 rounded-full"
-            animate={{
-              rotate: [360, 180, 0],
-              scale: [0.8, 1.2, 0.9, 0.8],
-              x: [-30, 30, -15, -30],
-              y: [20, -25, 25, 20],
-              borderRadius: [
-                "50% 50% 30% 70% / 50% 60% 40% 50%",
-                "25% 75% 55% 45% / 70% 30% 70% 30%",
-                "65% 35% 45% 55% / 40% 60% 40% 60%",
-                "50% 50% 30% 70% / 50% 60% 40% 50%",
-              ],
-            }}
-            transition={{
-              duration: 8,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-            style={{
-              background:
-                "radial-gradient(circle at center, var(--color-accent-4) 0%, transparent 80%)",
-              filter: "blur(30px)",
-              opacity: 0.6,
-              mixBlendMode: "plus-lighter",
-            }}
-          />
-        </div>
-        <div className="relative">
-          <Compass className="h-10 w-10" style={{ color: "var(--color-accent-2)" }} />
-          <h2 className="mt-6 font-display text-5xl leading-[0.92] tracking-tight text-[var(--color-background)] md:text-8xl">
-            stop scrolling.
-            <br />
-            <span className="chroma-text italic">start shipping.</span>
-          </h2>
-          <p className="mt-6 max-w-xl font-grotesk text-lg text-[var(--color-background)]/70">
-            Your next pull request is one search away. We surface 100 active, beginner-friendly
-            repos per query — pick one and go.
-          </p>
-          <Link
-            to="/explore"
-            className="group mt-10 inline-flex items-center gap-3 rounded-full border-2 border-[var(--color-background)] bg-[var(--color-accent-2)] px-8 py-4 text-base font-bold uppercase tracking-wider text-[var(--color-background)] transition-all hover:-translate-y-1 hover:rotate-[-1.5deg]"
-            style={{ boxShadow: "6px 6px 0 0 var(--color-background)" }}
+            animate={{ y: [-4, 4, -4] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-4 py-1.5 text-xs font-bold text-black backdrop-blur-md shadow-sm transition-all hover:scale-105 hover:bg-white hover:shadow-md cursor-default"
           >
-            launch explorer
-            <ArrowUpRight
-              className="h-5 w-5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1"
-              strokeWidth={2.6}
-            />
-          </Link>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span>100+ Repos Refreshed Live</span>
+          </motion.div>
+
+          <motion.div
+            animate={{ y: [4, -4, 4] }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+            className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-3.5 py-1.5 text-xs font-bold text-black backdrop-blur-md shadow-sm transition-all hover:scale-105 hover:bg-white hover:shadow-md cursor-default"
+          >
+            <Flame className="h-3.5 w-3.5 text-amber-600 animate-bounce" />
+            <span>Beginner Friendly Issues</span>
+          </motion.div>
         </div>
-      </div>
+
+        {/* Main Content Area */}
+        <div className="relative z-20">
+          {/* Compass Radar Badge */}
+          <div className="relative inline-block">
+            {/* Sonar Radar Pulse Ring */}
+            <motion.div
+              animate={{ scale: [1, 1.8], opacity: [0.5, 0] }}
+              transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
+              className="absolute inset-0 rounded-full bg-[var(--color-accent-2)]/40 pointer-events-none"
+            />
+
+            <motion.button
+              type="button"
+              onMouseEnter={() => setIsCompassHovered(true)}
+              onMouseLeave={() => setIsCompassHovered(false)}
+              whileHover={{ scale: 1.15, rotate: 15 }}
+              whileTap={{ scale: 0.9 }}
+              className="relative flex h-14 w-14 items-center justify-center rounded-2xl border-2 border-black/15 bg-white/80 text-[var(--color-background)] shadow-md backdrop-blur-xl transition-colors hover:border-[var(--color-accent-2)] hover:bg-white"
+            >
+              <motion.div
+                animate={isCompassHovered ? { rotate: 360 } : { rotate: [0, 10, -10, 0] }}
+                transition={
+                  isCompassHovered
+                    ? { duration: 0.8, ease: "backOut" }
+                    : { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                }
+              >
+                <Compass className="h-7 w-7 text-black stroke-[2.2]" />
+              </motion.div>
+
+              <AnimatePresence>
+                {isCompassHovered && (
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    className="absolute -top-2 -right-2 text-amber-500"
+                  >
+                    <Sparkles className="h-4 w-4 fill-amber-400" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </div>
+
+          {/* Interactive Headline */}
+          <h2 className="mt-8 font-display text-5xl leading-[0.92] tracking-tight text-[var(--color-background)] md:text-8xl">
+            {/* Hover Span 1: "stop scrolling." */}
+            <motion.span
+              onMouseEnter={() => setIsStopHovered(true)}
+              onMouseLeave={() => setIsStopHovered(false)}
+              className="relative inline-block cursor-pointer transition-transform duration-300 hover:translate-x-1"
+            >
+              <span className="relative z-10">stop scrolling.</span>
+              <motion.span
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: isStopHovered ? 1 : 0 }}
+                transition={{ duration: 0.25 }}
+                className="absolute bottom-2 left-0 right-0 h-2 bg-gradient-to-r from-red-500/80 to-amber-500/80 origin-left -z-0 rounded-full"
+              />
+            </motion.span>
+
+            <br />
+
+            {/* Hover Span 2: "start shipping." */}
+            <motion.span
+              onMouseEnter={() => setIsShipHovered(true)}
+              onMouseLeave={() => setIsShipHovered(false)}
+              whileHover={{ scale: 1.02, x: 6 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="relative inline-flex items-center gap-3 cursor-pointer select-none"
+            >
+              <span className="chroma-text italic bg-gradient-to-r from-amber-500 via-orange-500 to-amber-400 bg-clip-text text-transparent">
+                start shipping.
+              </span>
+
+              <AnimatePresence>
+                {isShipHovered && (
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.5, x: -10, rotate: -20 }}
+                    animate={{ opacity: 1, scale: 1, x: 0, rotate: 0 }}
+                    exit={{ opacity: 0, scale: 0.5, x: 10, rotate: 20 }}
+                    transition={{ duration: 0.2 }}
+                    className="inline-flex items-center justify-center rounded-full bg-amber-400 p-2 text-black shadow-lg"
+                  >
+                    <Rocket className="h-6 w-6 animate-bounce" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.span>
+          </h2>
+
+          {/* Enhanced Paragraph with Micro-interaction spans */}
+          <p className="mt-6 max-w-xl font-grotesk text-lg md:text-xl text-[var(--color-background)]/80 leading-relaxed">
+            Your next pull request is{" "}
+            <span className="relative inline-block font-semibold text-black underline decoration-[var(--color-accent-2)] decoration-2 underline-offset-4 cursor-pointer transition-all hover:text-amber-600">
+              one search away
+            </span>
+            . We surface{" "}
+            <span className="inline-flex items-center gap-1 rounded-lg border border-black/10 bg-black/5 px-2.5 py-0.5 font-bold text-black backdrop-blur-sm transition-all hover:bg-[var(--color-accent-2)] hover:scale-105 cursor-default shadow-xs">
+              <Zap className="h-3.5 w-3.5 text-amber-500 fill-amber-400" />
+              100 active, beginner-friendly repos
+            </span>{" "}
+            per query — pick one and go.
+          </p>
+
+          {/* Interactive Button */}
+          <div className="mt-10 flex flex-wrap items-center gap-4">
+            <Link
+              to="/explore"
+              onMouseEnter={() => setIsBtnHovered(true)}
+              onMouseLeave={() => setIsBtnHovered(false)}
+              className="group relative inline-flex items-center gap-3.5 rounded-full border-2 border-black bg-[var(--color-accent-2)] px-9 py-4.5 text-base md:text-lg font-bold uppercase tracking-wider text-black transition-all duration-300 hover:-translate-y-1.5 hover:rotate-[-1.5deg] active:translate-y-0.5 overflow-hidden"
+              style={{
+                boxShadow: isBtnHovered
+                  ? "10px 10px 0 0 #000"
+                  : "6px 6px 0 0 #000",
+              }}
+            >
+              {/* Button Shine Sweep Effect */}
+              <motion.div
+                animate={isBtnHovered ? { x: ["-100%", "200%"] } : { x: "-100%" }}
+                transition={{ duration: 0.8, ease: "easeInOut" }}
+                className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 pointer-events-none"
+              />
+
+              <span className="relative z-10 flex items-center gap-2">
+                launch explorer
+              </span>
+
+              <motion.div
+                animate={isBtnHovered ? { x: 3, y: -3, scale: 1.2 } : { x: 0, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                className="relative z-10 rounded-full bg-black/10 p-1 group-hover:bg-black group-hover:text-[var(--color-accent-2)] transition-colors"
+              >
+                <ArrowUpRight strokeWidth={2.8} className="h-5 w-5" />
+              </motion.div>
+            </Link>
+
+            {/* Micro Badge next to button */}
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-[var(--color-background)]/70 bg-black/5 px-3.5 py-2 rounded-full border border-black/10 backdrop-blur-sm">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+              Free • Instant Search
+            </span>
+          </div>
+        </div>
+      </motion.div>
     </section>
   );
 }
