@@ -5,19 +5,26 @@ export function GlobalCursor() {
   const mouseX = useMotionValue(-100);
   const mouseY = useMotionValue(-100);
 
-  // High-response spring physics for smooth, lag-free trailing
-  const smoothX = useSpring(mouseX, { stiffness: 350, damping: 28 });
-  const smoothY = useSpring(mouseY, { stiffness: 350, damping: 28 });
+  // 1. Instant response trailing for the main point dot (no feelable click-lag)
+  const directX = useSpring(mouseX, { stiffness: 1200, damping: 55 });
+  const directY = useSpring(mouseY, { stiffness: 1200, damping: 55 });
+
+  // 2. Smooth trailing spring physics for the outer glowing aura and rings
+  const springX = useSpring(mouseX, { stiffness: 280, damping: 25 });
+  const springY = useSpring(mouseY, { stiffness: 280, damping: 25 });
 
   const [isVisible, setIsVisible] = useState(false);
   const [isHoveringInteractive, setIsHoveringInteractive] = useState(false);
   const [isMouseDown, setIsMouseDown] = useState(false);
 
   useEffect(() => {
-    // Hide cursor on touch-only devices
+    // Hide custom cursor on touch/mobile devices
     if (window.matchMedia("(pointer: coarse)").matches) {
       return;
     }
+
+    // Add active class to DOM to hide OS cursor globally
+    document.documentElement.classList.add("custom-cursor-active");
 
     const handleMouseMove = (e: MouseEvent) => {
       mouseX.set(e.clientX);
@@ -25,7 +32,7 @@ export function GlobalCursor() {
 
       if (!isVisible) setIsVisible(true);
 
-      // Check if hovering interactive element
+      // Check if current target is an interactive element
       const target = e.target as HTMLElement | null;
       if (target) {
         const isInteractive = Boolean(
@@ -37,8 +44,16 @@ export function GlobalCursor() {
       }
     };
 
-    const handleMouseLeave = () => setIsVisible(false);
-    const handleMouseEnter = () => setIsVisible(true);
+    const handleMouseLeave = () => {
+      setIsVisible(false);
+      document.documentElement.classList.remove("custom-cursor-active");
+    };
+
+    const handleMouseEnter = () => {
+      setIsVisible(true);
+      document.documentElement.classList.add("custom-cursor-active");
+    };
+
     const handleMouseDown = () => setIsMouseDown(true);
     const handleMouseUp = () => setIsMouseDown(false);
 
@@ -49,6 +64,7 @@ export function GlobalCursor() {
     window.addEventListener("mouseup", handleMouseUp);
 
     return () => {
+      document.documentElement.classList.remove("custom-cursor-active");
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseleave", handleMouseLeave);
       window.removeEventListener("mouseenter", handleMouseEnter);
@@ -61,65 +77,68 @@ export function GlobalCursor() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden select-none">
-      {/* 1. Compact Glowing Radial Spotlight Following Cursor */}
+      {/* A. Outer Spotlight (Smooth lag-follow) */}
       <motion.div
         className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
         style={{
-          left: smoothX,
-          top: smoothY,
-          width: isHoveringInteractive ? 200 : 140,
-          height: isHoveringInteractive ? 200 : 140,
+          left: springX,
+          top: springY,
+          width: isHoveringInteractive ? 200 : 130,
+          height: isHoveringInteractive ? 200 : 130,
           background:
             "radial-gradient(circle at center, rgba(192, 240, 0, 0.28) 0%, rgba(249, 115, 22, 0.16) 45%, transparent 75%)",
           filter: "blur(24px)",
         }}
       />
 
-      {/* 2. Compact Visible Glowing Cursor Orb */}
+      {/* B. Outer Neon Glow Ring (Smooth lag-follow) */}
       <motion.div
         className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
         style={{
-          left: smoothX,
-          top: smoothY,
+          left: springX,
+          top: springY,
         }}
         animate={{
-          scale: isMouseDown ? 0.75 : isHoveringInteractive ? 1.5 : 1,
+          scale: isMouseDown ? 0.75 : isHoveringInteractive ? 1.6 : 1,
         }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        transition={{ type: "spring", stiffness: 350, damping: 25 }}
       >
-        {/* Outer Pulsing Neon Aura Ring */}
         <motion.div
           animate={{
             rotate: [0, 180, 360],
-            scale: isHoveringInteractive ? [1, 1.2, 1] : [1, 1.1, 1],
           }}
           transition={{
             rotate: { duration: 8, repeat: Infinity, ease: "linear" },
-            scale: { duration: 2, repeat: Infinity, ease: "easeInOut" },
           }}
-          className="absolute h-10 w-10 rounded-full border border-white/30 bg-gradient-to-tr from-[var(--color-accent-2)] via-orange-400 to-[var(--color-accent-3)] opacity-80 blur-[2px] shadow-[0_0_15px_rgba(192,240,0,0.5)]"
+          className="absolute h-10 w-10 rounded-full border border-white/30 bg-gradient-to-tr from-[var(--color-accent-2)] via-orange-400 to-[var(--color-accent-3)] opacity-70 blur-[1px] shadow-[0_0_15px_rgba(192,240,0,0.4)]"
         />
 
-        {/* Crisp Glass Ring Container */}
-        <div className="relative flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-surface/40 backdrop-blur-md shadow-lg">
-          {/* Inner Bright Neon Core Dot */}
-          <motion.div
-            animate={{
-              scale: isHoveringInteractive ? [1, 1.4, 1] : 1,
-            }}
-            transition={{ duration: 1, repeat: Infinity }}
-            className="h-2.5 w-2.5 rounded-full bg-[var(--color-accent-2)] shadow-[0_0_10px_var(--color-accent-2)]"
-          />
-        </div>
+        <div className="relative flex h-8 w-8 items-center justify-center rounded-full border border-white/35 bg-surface/30 backdrop-blur-md" />
+      </motion.div>
+
+      {/* C. Instant Core Point Dot (Lag-free exact position indicator for precise clicks) */}
+      <motion.div
+        className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
+        style={{
+          left: directX,
+          top: directY,
+        }}
+        animate={{
+          scale: isMouseDown ? 0.6 : isHoveringInteractive ? 1.4 : 1,
+        }}
+        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+      >
+        {/* Core clickable center dot */}
+        <div className="h-3 w-3 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,1)] border border-[var(--color-accent-2)]" />
 
         {/* Click Shockwave Wave Effect */}
         <AnimatePresence>
           {isMouseDown && (
             <motion.span
               initial={{ scale: 0.5, opacity: 0.9 }}
-              animate={{ scale: 2.4, opacity: 0 }}
+              animate={{ scale: 2.2, opacity: 0 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.45, ease: "easeOut" }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
               className="absolute h-8 w-8 rounded-full border-2 border-[var(--color-accent-2)]"
             />
           )}

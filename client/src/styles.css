@@ -111,6 +111,16 @@
   }
 }
 
+@media (pointer: fine) {
+  html.custom-cursor-active,
+  html.custom-cursor-active *,
+  html.custom-cursor-active a,
+  html.custom-cursor-active button,
+  html.custom-cursor-active input {
+    cursor: none !important;
+  }
+}
+
 @utility text-balance {
   text-wrap: balance;
 }
