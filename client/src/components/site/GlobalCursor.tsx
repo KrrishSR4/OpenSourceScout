@@ -77,21 +77,22 @@ export function GlobalCursor() {
 
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden select-none">
-      {/* A. Outer Spotlight (Smooth lag-follow) */}
+      {/* A. Outer Spotlight (Smooth lag-follow + shifts colors on hover) */}
       <motion.div
-        className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full"
+        className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-500"
         style={{
           left: springX,
           top: springY,
-          width: isHoveringInteractive ? 200 : 130,
-          height: isHoveringInteractive ? 200 : 130,
-          background:
-            "radial-gradient(circle at center, rgba(192, 240, 0, 0.28) 0%, rgba(249, 115, 22, 0.16) 45%, transparent 75%)",
+          width: 140,
+          height: 140,
+          background: isHoveringInteractive
+            ? "radial-gradient(circle at center, rgba(56, 189, 248, 0.35) 0%, rgba(236, 72, 153, 0.16) 45%, transparent 75%)"
+            : "radial-gradient(circle at center, rgba(192, 240, 0, 0.28) 0%, rgba(249, 115, 22, 0.16) 45%, transparent 75%)",
           filter: "blur(24px)",
         }}
       />
 
-      {/* B. Outer Neon Glow Ring (Smooth lag-follow) */}
+      {/* B. Outer Neon Glow Ring (Smooth lag-follow + accelerated spin on hover) */}
       <motion.div
         className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 flex items-center justify-center"
         style={{
@@ -99,7 +100,7 @@ export function GlobalCursor() {
           top: springY,
         }}
         animate={{
-          scale: isMouseDown ? 0.75 : isHoveringInteractive ? 1.6 : 1,
+          scale: isMouseDown ? 0.75 : 1,
         }}
         transition={{ type: "spring", stiffness: 350, damping: 25 }}
       >
@@ -108,12 +109,20 @@ export function GlobalCursor() {
             rotate: [0, 180, 360],
           }}
           transition={{
-            rotate: { duration: 8, repeat: Infinity, ease: "linear" },
+            rotate: {
+              duration: isHoveringInteractive ? 2 : 7,
+              repeat: Infinity,
+              ease: "linear",
+            },
           }}
-          className="absolute h-10 w-10 rounded-full border border-white/30 bg-gradient-to-tr from-[var(--color-accent-2)] via-orange-400 to-[var(--color-accent-3)] opacity-70 blur-[1px] shadow-[0_0_15px_rgba(192,240,0,0.4)]"
+          className={`absolute h-9 w-9 rounded-full border border-white/30 bg-gradient-to-tr transition-all duration-300 opacity-80 blur-[0.5px] ${
+            isHoveringInteractive
+              ? "from-cyan-400 via-purple-500 to-pink-500 shadow-[0_0_18px_rgba(56,189,248,0.6)]"
+              : "from-[var(--color-accent-2)] via-orange-400 to-[var(--color-accent-3)] shadow-[0_0_12px_rgba(192,240,0,0.35)]"
+          }`}
         />
 
-        <div className="relative flex h-8 w-8 items-center justify-center rounded-full border border-white/35 bg-surface/30 backdrop-blur-md" />
+        <div className="relative flex h-7.5 w-7.5 items-center justify-center rounded-full border border-white/20 bg-surface/40 backdrop-blur-md" />
       </motion.div>
 
       {/* C. Instant Core Point Dot (Lag-free exact position indicator for precise clicks) */}
@@ -124,12 +133,28 @@ export function GlobalCursor() {
           top: directY,
         }}
         animate={{
-          scale: isMouseDown ? 0.6 : isHoveringInteractive ? 1.4 : 1,
+          scale: isMouseDown ? 0.65 : 1,
         }}
         transition={{ type: "spring", stiffness: 500, damping: 25 }}
       >
         {/* Core clickable center dot */}
-        <div className="h-3 w-3 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,1)] border border-[var(--color-accent-2)]" />
+        <motion.div
+          animate={
+            isHoveringInteractive
+              ? { scale: [1, 1.3, 1], backgroundColor: "#38bdf8" }
+              : { scale: 1, backgroundColor: "#ffffff" }
+          }
+          transition={
+            isHoveringInteractive
+              ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
+              : { duration: 0.2 }
+          }
+          className={`h-2.5 w-2.5 rounded-full border border-black/20 shadow-md ${
+            isHoveringInteractive
+              ? "shadow-[0_0_10px_#38bdf8]"
+              : "shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+          }`}
+        />
 
         {/* Click Shockwave Wave Effect */}
         <AnimatePresence>
@@ -139,7 +164,7 @@ export function GlobalCursor() {
               animate={{ scale: 2.2, opacity: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className="absolute h-8 w-8 rounded-full border-2 border-[var(--color-accent-2)]"
+              className="absolute h-8 w-8 rounded-full border-2 border-cyan-400"
             />
           )}
         </AnimatePresence>
