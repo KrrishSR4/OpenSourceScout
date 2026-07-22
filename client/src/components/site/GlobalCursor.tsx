@@ -76,8 +76,8 @@ export function GlobalCursor() {
   if (!isVisible) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden select-none">
-      {/* A. Outer Spotlight (Smooth lag-follow + shifts colors on hover) */}
+    <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden select-none">
+      {/* A. Outer Spotlight (Smooth lag-follow + shifts colors to ultra-vibrant neon gradients on hover) */}
       <motion.div
         className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors duration-500"
         style={{
@@ -86,8 +86,8 @@ export function GlobalCursor() {
           width: 140,
           height: 140,
           background: isHoveringInteractive
-            ? "radial-gradient(circle at center, rgba(56, 189, 248, 0.35) 0%, rgba(236, 72, 153, 0.16) 45%, transparent 75%)"
-            : "radial-gradient(circle at center, rgba(192, 240, 0, 0.28) 0%, rgba(249, 115, 22, 0.16) 45%, transparent 75%)",
+            ? "radial-gradient(circle at center, rgba(255, 0, 127, 0.45) 0%, rgba(255, 235, 59, 0.2) 45%, transparent 75%)"
+            : "radial-gradient(circle at center, rgba(0, 255, 204, 0.38) 0%, rgba(168, 85, 247, 0.18) 45%, transparent 75%)",
           filter: "blur(24px)",
         }}
       />
@@ -115,10 +115,10 @@ export function GlobalCursor() {
               ease: "linear",
             },
           }}
-          className={`absolute h-9 w-9 rounded-full border border-white/30 bg-gradient-to-tr transition-all duration-300 opacity-80 blur-[0.5px] ${
+          className={`absolute h-9 w-9 rounded-full border border-white/30 bg-gradient-to-tr transition-all duration-300 opacity-90 blur-[0.5px] ${
             isHoveringInteractive
-              ? "from-cyan-400 via-purple-500 to-pink-500 shadow-[0_0_18px_rgba(56,189,248,0.6)]"
-              : "from-[var(--color-accent-2)] via-orange-400 to-[var(--color-accent-3)] shadow-[0_0_12px_rgba(192,240,0,0.35)]"
+              ? "from-[#ff007f] via-[#ff5722] to-[#ffeb3b] shadow-[0_0_22px_rgba(255,0,127,0.7)]"
+              : "from-[#00ffcc] via-[#38bdf8] to-[#a855f7] shadow-[0_0_15px_rgba(0,255,204,0.55)]"
           }`}
         />
 
@@ -141,18 +141,18 @@ export function GlobalCursor() {
         <motion.div
           animate={
             isHoveringInteractive
-              ? { scale: [1, 1.3, 1], backgroundColor: "#38bdf8" }
-              : { scale: 1, backgroundColor: "#ffffff" }
+              ? { scale: [1, 1.35, 1] }
+              : { scale: 1 }
           }
           transition={
             isHoveringInteractive
               ? { duration: 1.2, repeat: Infinity, ease: "easeInOut" }
               : { duration: 0.2 }
           }
-          className={`h-2.5 w-2.5 rounded-full border border-black/20 shadow-md ${
+          className={`h-2.5 w-2.5 rounded-full border border-black/20 shadow-md transition-all duration-300 ${
             isHoveringInteractive
-              ? "shadow-[0_0_10px_#38bdf8]"
-              : "shadow-[0_0_6px_rgba(255,255,255,0.8)]"
+              ? "bg-gradient-to-r from-[#ff007f] to-[#ffeb3b] shadow-[0_0_12px_#ff007f]"
+              : "bg-gradient-to-r from-[#00f5ff] to-[#00ff66] shadow-[0_0_8px_#00f5ff]"
           }`}
         />
 
@@ -164,7 +164,7 @@ export function GlobalCursor() {
               animate={{ scale: 2.2, opacity: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
-              className="absolute h-8 w-8 rounded-full border-2 border-cyan-400"
+              className="absolute h-8 w-8 rounded-full border-2 border-[#ff007f]"
             />
           )}
         </AnimatePresence>
