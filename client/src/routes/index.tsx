@@ -686,21 +686,26 @@ function Stats() {
 /* ============================== CTA ============================== */
 function CTA() {
   const cardRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
 
-  const rotateX = useSpring(useTransform(mouseY, [-250, 250], [4, -4]), {
-    stiffness: 200,
+  // Tilt spring values
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const rotateX = useSpring(useTransform(tiltX, [-250, 250], [4, -4]), {
+    stiffness: 180,
     damping: 25,
   });
-  const rotateY = useSpring(useTransform(mouseX, [-500, 500], [-5, 5]), {
-    stiffness: 200,
+  const rotateY = useSpring(useTransform(tiltY, [-500, 500], [-5, 5]), {
+    stiffness: 180,
     damping: 25,
   });
 
-  const spotlightX = useSpring(mouseX, { stiffness: 150, damping: 20 });
-  const spotlightY = useSpring(mouseY, { stiffness: 150, damping: 20 });
+  // Dynamic Cursor Gradient Follower coordinates
+  const rawCursorX = useMotionValue(500);
+  const rawCursorY = useMotionValue(150);
+  const cursorX = useSpring(rawCursorX, { stiffness: 100, damping: 20 });
+  const cursorY = useSpring(rawCursorY, { stiffness: 100, damping: 20 });
 
+  const [isCardHovered, setIsCardHovered] = useState(false);
   const [isCompassHovered, setIsCompassHovered] = useState(false);
   const [isStopHovered, setIsStopHovered] = useState(false);
   const [isShipHovered, setIsShipHovered] = useState(false);
@@ -709,15 +714,31 @@ function CTA() {
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - (rect.left + rect.width / 2);
-    const y = e.clientY - (rect.top + rect.height / 2);
-    mouseX.set(x);
-    mouseY.set(y);
+    const relX = e.clientX - rect.left;
+    const relY = e.clientY - rect.top;
+
+    rawCursorX.set(relX);
+    rawCursorY.set(relY);
+
+    const centerX = relX - rect.width / 2;
+    const centerY = relY - rect.height / 2;
+    tiltX.set(centerY);
+    tiltY.set(centerX);
+  }
+
+  function handleMouseEnter() {
+    setIsCardHovered(true);
   }
 
   function handleMouseLeave() {
-    mouseX.set(0);
-    mouseY.set(0);
+    setIsCardHovered(false);
+    tiltX.set(0);
+    tiltY.set(0);
+    if (cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect();
+      rawCursorX.set(rect.width * 0.75);
+      rawCursorY.set(rect.height * 0.25);
+    }
   }
 
   return (
@@ -725,6 +746,7 @@ function CTA() {
       <motion.div
         ref={cardRef}
         onMouseMove={handleMouseMove}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         style={{
           rotateX,
@@ -736,38 +758,34 @@ function CTA() {
         }}
         className="group relative overflow-hidden rounded-[2.5rem] border-2 border-ink bg-ink p-10 md:p-20 transition-shadow duration-500"
       >
-        {/* Dynamic Cursor Spotlight Light Field */}
-        <motion.div
-          className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"
-          style={{
-            background: useTransform(
-              [spotlightX, spotlightY],
-              ([x, y]) =>
-                `radial-gradient(650px circle at calc(50% + ${x}px) calc(50% + ${y}px), rgba(192, 240, 0, 0.15), rgba(255, 112, 67, 0.08), transparent 70%)`
-            ),
-          }}
-        />
-
-        <div className="pointer-events-none absolute inset-0 halo opacity-50" />
+        <div className="pointer-events-none absolute inset-0 halo opacity-50 z-0" />
         <div className="grain-overlay" />
 
-        {/* Morphing Liquid Gradient Blobs */}
-        <div className="pointer-events-none absolute -right-32 -top-32 h-[28rem] w-[28rem] overflow-visible select-none">
-          {/* Outer glow */}
+        {/* DYNAMIC INTERACTIVE COLORFUL LIQUID GRADIENT CURSOR FOLLOWER */}
+        <motion.div
+          className="pointer-events-none absolute h-[32rem] w-[32rem] -translate-x-1/2 -translate-y-1/2 overflow-visible select-none transition-opacity duration-500 z-10"
+          style={{
+            left: cursorX,
+            top: cursorY,
+            opacity: isCardHovered ? 0.9 : 0.5,
+          }}
+        >
+          {/* Layer 1: Outer Soft Radial Glow */}
           <motion.div
             className="absolute inset-0 rounded-full"
             animate={{
               scale: [1, 1.3, 0.95, 1],
-              opacity: [0.35, 0.7, 0.3, 0.35],
+              opacity: [0.4, 0.75, 0.35, 0.4],
             }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
             style={{
               background:
-                "radial-gradient(circle at center, var(--color-accent-3) 0%, transparent 70%)",
-              filter: "blur(50px)",
+                "radial-gradient(circle at center, var(--color-accent-3) 0%, var(--color-accent-2) 45%, transparent 70%)",
+              filter: "blur(55px)",
             }}
           />
-          {/* Conic liquid core */}
+
+          {/* Layer 2: Core Spinning Conic Liquid Mesh Blob */}
           <motion.div
             className="absolute inset-0 rounded-full"
             animate={{
@@ -780,54 +798,31 @@ function CTA() {
                 "42% 58% 63% 37% / 41% 44% 56% 59%",
               ],
             }}
-            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
             style={{
               background:
                 "conic-gradient(from 0deg, var(--color-accent-2), var(--color-accent-3), var(--color-accent-4), var(--color-accent), var(--color-accent-2))",
-              filter: "blur(40px)",
-              opacity: 0.75,
+              filter: "blur(38px)",
+              opacity: 0.85,
             }}
           />
-        </div>
 
-        {/* Bottom Left Secondary Ambient Glow Spotlight */}
-        <motion.div
-          className="pointer-events-none absolute -left-20 -bottom-20 h-72 w-72 rounded-full"
-          animate={{
-            scale: [0.9, 1.2, 0.9],
-            opacity: [0.3, 0.6, 0.3],
-          }}
-          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-          style={{
-            background:
-              "radial-gradient(circle at center, var(--color-accent-2) 0%, transparent 75%)",
-            filter: "blur(45px)",
-          }}
-        />
-
-        {/* Floating Stat Badges in Background */}
-        <div className="pointer-events-none absolute right-12 top-12 hidden lg:flex flex-col gap-3 items-end z-20">
+          {/* Layer 3: High-Intensity Center Highlight Spot */}
           <motion.div
-            animate={{ y: [-4, 4, -4] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-4 py-1.5 text-xs font-bold text-black backdrop-blur-md shadow-sm transition-all hover:scale-105 hover:bg-white hover:shadow-md cursor-default"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span>100+ Repos Refreshed Live</span>
-          </motion.div>
-
-          <motion.div
-            animate={{ y: [4, -4, 4] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-            className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-black/10 bg-white/60 px-3.5 py-1.5 text-xs font-bold text-black backdrop-blur-md shadow-sm transition-all hover:scale-105 hover:bg-white hover:shadow-md cursor-default"
-          >
-            <Flame className="h-3.5 w-3.5 text-amber-600 animate-bounce" />
-            <span>Beginner Friendly Issues</span>
-          </motion.div>
-        </div>
+            className="absolute inset-12 rounded-full"
+            animate={{
+              rotate: [360, 180, 0],
+              scale: [0.85, 1.2, 0.85],
+            }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              background:
+                "radial-gradient(circle at center, rgba(255, 255, 255, 0.95) 0%, var(--color-accent-2) 40%, transparent 75%)",
+              filter: "blur(28px)",
+              mixBlendMode: "overlay",
+            }}
+          />
+        </motion.div>
 
         {/* Main Content Area */}
         <div className="relative z-20">
