@@ -3,6 +3,7 @@ import { Navbar } from "./Navbar";
 import { Footer } from "./Footer";
 import { LenisProvider } from "./Lenis";
 import { AnimatedBackground } from "./AnimatedBackground";
+import { ScrollToTop } from "./ScrollToTop";
 
 export function Shell({ children }: { children: ReactNode }) {
   return (
@@ -12,6 +13,8 @@ export function Shell({ children }: { children: ReactNode }) {
       <Navbar />
       <main className="relative z-10">{children}</main>
       <Footer />
+      <ScrollToTop />
     </div>
   );
 }
+
