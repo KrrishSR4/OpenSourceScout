@@ -295,103 +295,107 @@ export class GitHubService {
       }
     }
 
-    // 3. For repos that need enrichment, fetch details from GitHub (limit to max 24 new enrichments per search to avoid rate limits)
-    const limitEnrich = reposToEnrich.slice(0, 24);
-    const remainingEnrich = reposToEnrich.slice(24);
-
-    const [counts, contribCounts] = await Promise.all([
-      Promise.all(
-        limitEnrich.map(async (r) => {
-          try {
-            const issuesUrl = `${config.GITHUB_API_URL}/search/issues?q=${encodeURIComponent(
-              `repo:${r.full_name} is:issue is:open label:"good first issue"`
-            )}&per_page=1`;
-            const j = (await this.ghFetch(issuesUrl)) as { total_count: number };
-            return j.total_count ?? 0;
-          } catch {
-            return 0;
-          }
-        })
-      ),
-      Promise.all(
-        limitEnrich.map(async (r) => {
-          try {
-            const url = `${config.GITHUB_API_URL}/repos/${r.full_name}/contributors?per_page=1&anon=true`;
-            return await this.ghCount(url);
-          } catch {
-            return 0;
-          }
-        })
-      ),
-    ]);
-
-    // Save enriched repos to cache
+    // 3. For repos that need enrichment:
+    // Generate instant response results using stale cache or fallback values
     const newlyEnriched: Repo[] = [];
-    for (let i = 0; i < limitEnrich.length; i++) {
-      const r = limitEnrich[i];
-      const gfiCount = counts[i];
-      const contributorCount = contribCounts[i];
-      const normalized = this.normalizeRepo(r, gfiCount, contributorCount);
-
-      // Save to database
-      try {
-        await prisma.repositoryCache.upsert({
-          where: { githubId: r.id },
-          update: {
-            description: r.description,
-            stars: r.stargazers_count,
-            forks: r.forks_count,
-            openIssues: r.open_issues_count,
-            language: r.language,
-            rawData: normalized as any,
-            updatedAt: new Date(),
-            frameworks: framework ? {
-              connect: { name: framework.toLowerCase() }
-            } : undefined,
-          },
-          create: {
-            githubId: r.id,
-            fullName: r.full_name,
-            description: r.description,
-            stars: r.stargazers_count,
-            forks: r.forks_count,
-            openIssues: r.open_issues_count,
-            language: r.language,
-            rawData: normalized as any,
-            frameworks: framework ? {
-              connect: { name: framework.toLowerCase() }
-            } : undefined,
-          },
-        });
-      } catch (err) {
-        logger.error(err, `Failed to cache repo ${r.full_name}`);
-      }
-
-      newlyEnriched.push(normalized);
-    }
-
-    // For the remaining repos that we couldn't enrich in this request, use fallback or stale cache if available
-    const fallbackRepos: Repo[] = [];
-    for (const r of remainingEnrich) {
+    for (const r of reposToEnrich) {
       const cached = cacheMap.get(r.id);
       if (cached) {
-        // Stale cache is better than fallback
-        fallbackRepos.push(cached.rawData as unknown as Repo);
+        newlyEnriched.push(cached.rawData as unknown as Repo);
       } else {
         const normalized = this.normalizeRepo(
           r,
           0,
           Math.max(1, Math.round(Math.log10(Math.max(1, r.forks_count)) * 40))
         );
-        fallbackRepos.push(normalized);
+        newlyEnriched.push(normalized);
       }
+    }
+
+    // 4. Enrich in background asynchronously (limit to max 15 repos per search request to prevent rate limits)
+    const limitEnrich = reposToEnrich.slice(0, 15);
+    if (limitEnrich.length > 0) {
+      // Run enrichment task in background without blocking response
+      (async () => {
+        try {
+          logger.info(`Starting background repository enrichment for ${limitEnrich.length} items`);
+          const [counts, contribCounts] = await Promise.all([
+            Promise.all(
+              limitEnrich.map(async (r) => {
+                try {
+                  const issuesUrl = `${config.GITHUB_API_URL}/search/issues?q=${encodeURIComponent(
+                    `repo:${r.full_name} is:issue is:open label:"good first issue"`
+                  )}&per_page=1`;
+                  const j = (await this.ghFetch(issuesUrl)) as { total_count: number };
+                  return j.total_count ?? 0;
+                } catch {
+                  return 0;
+                }
+              })
+            ),
+            Promise.all(
+              limitEnrich.map(async (r) => {
+                try {
+                  const url = `${config.GITHUB_API_URL}/repos/${r.full_name}/contributors?per_page=1&anon=true`;
+                  return await this.ghCount(url);
+                } catch {
+                  return 0;
+                }
+              })
+            ),
+          ]);
+
+          // Save newly enriched data to DB
+          for (let i = 0; i < limitEnrich.length; i++) {
+            const r = limitEnrich[i];
+            const gfiCount = counts[i];
+            const contributorCount = contribCounts[i];
+            const normalized = this.normalizeRepo(r, gfiCount, contributorCount);
+
+            try {
+              await prisma.repositoryCache.upsert({
+                where: { githubId: r.id },
+                update: {
+                  description: r.description,
+                  stars: r.stargazers_count,
+                  forks: r.forks_count,
+                  openIssues: r.open_issues_count,
+                  language: r.language,
+                  rawData: normalized as any,
+                  updatedAt: new Date(),
+                  frameworks: framework ? {
+                    connect: { name: framework.toLowerCase() }
+                  } : undefined,
+                },
+                create: {
+                  githubId: r.id,
+                  fullName: r.full_name,
+                  description: r.description,
+                  stars: r.stargazers_count,
+                  forks: r.forks_count,
+                  openIssues: r.open_issues_count,
+                  language: r.language,
+                  rawData: normalized as any,
+                  frameworks: framework ? {
+                    connect: { name: framework.toLowerCase() }
+                  } : undefined,
+                },
+              });
+            } catch (err) {
+              logger.error(err, `Failed to cache repo ${r.full_name} in background`);
+            }
+          }
+          logger.info(`Successfully enriched ${limitEnrich.length} repos in background.`);
+        } catch (err) {
+          logger.error(err, "Error in background repo enrichment");
+        }
+      })();
     }
 
     // Combine all results in original order
     const finalResultsMap = new Map<number, Repo>();
     results.forEach((r) => finalResultsMap.set(r.id, r));
     newlyEnriched.forEach((r) => finalResultsMap.set(r.id, r));
-    fallbackRepos.forEach((r) => finalResultsMap.set(r.id, r));
 
     return top.map((r) => finalResultsMap.get(r.id)!).filter(Boolean);
   }
