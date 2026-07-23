@@ -100,10 +100,10 @@ export function GlobalCursor() {
         animate={{
           scale: isHoveringInput ? 0 : isMouseDown ? 0.65 : isHoveringInteractive ? 1.4 : 1,
           opacity: isHoveringInput ? 0 : 0.95,
-          borderColor: isHoveringInteractive ? "#ff5a1f" : "#39d353",
+          borderColor: isHoveringInteractive ? "#ff5a1f" : "#00f0ff",
           boxShadow: isHoveringInteractive 
             ? "0 0 0 1px rgba(0, 0, 0, 0.7), 0 0 12px rgba(255, 90, 31, 0.4)"
-            : "0 0 0 1px rgba(0, 0, 0, 0.7), 0 0 12px rgba(57, 211, 83, 0.4)",
+            : "0 0 0 1px rgba(0, 0, 0, 0.7), 0 0 12px rgba(0, 240, 255, 0.4)",
         }}
         transition={{ type: "spring", stiffness: 750, damping: 40 }}
       />
@@ -121,7 +121,7 @@ export function GlobalCursor() {
         transition={{ type: "spring", stiffness: 1600, damping: 65 }}
       >
         {isHoveringInput ? (
-          /* Small, clean green blinking typing cursor line with high-contrast dark border */
+          /* Small, clean cyan blinking typing cursor line with high-contrast dark border */
           <motion.div
             animate={{
               opacity: [1, 0, 1],
@@ -131,7 +131,7 @@ export function GlobalCursor() {
               repeat: Infinity,
               ease: (t) => (t < 0.5 ? 0 : 1),
             }}
-            className="w-[2px] h-3.5 bg-[#39d353] border border-black/40 shadow-[0_0_0_1px_rgba(0,0,0,0.5),0_0_6px_#39d353]"
+            className="w-[2px] h-3.5 bg-[#00f0ff] border border-black/40 shadow-[0_0_0_1px_rgba(0,0,0,0.5),0_0_6px_#00f0ff]"
           />
         ) : (
           /* Simple small core dot with high-contrast dual-outline (visible on dark and light screens) */
@@ -142,7 +142,7 @@ export function GlobalCursor() {
             className={`w-1.5 h-1.5 rounded-full transition-colors duration-200 border border-white/80 shadow-[0_0_0_1px_rgba(0,0,0,0.75),0_0_8px_currentColor] ${
               isHoveringInteractive 
                 ? "bg-[#ff5a1f] text-[#ff5a1f]" 
-                : "bg-[#39d353] text-[#39d353]"
+                : "bg-[#00f0ff] text-[#00f0ff]"
             }`}
           />
         )}
@@ -175,7 +175,7 @@ export function GlobalCursor() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.42, ease: "easeOut" }}
                   className={`absolute h-1 w-1 rounded-full ${
-                    isHoveringInteractive ? "bg-[#39d353]" : "bg-[#ff5a1f]"
+                    isHoveringInteractive ? "bg-[#00f0ff]" : "bg-[#ff5a1f]"
                   } shadow-[0_0_4px_currentColor]`}
                 />
               ))}
