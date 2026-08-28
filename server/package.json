@@ -28,13 +28,13 @@
     "@eslint/js": "^10.0.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
-    "@types/node": "^26.2.0",
-    "@types/pg": "^8.21.0",
-    "eslint": "^10.8.1",
+    "@types/node": "^26.3.0",
+    "@types/pg": "^8.23.1",
+    "eslint": "^10.9.1",
     "globals": "^17.11.0",
     "prisma": "^7.9.1",
     "ts-node-dev": "^2.0.0",
     "typescript": "^7.0.2",
-    "typescript-eslint": "^8.67.0"
+    "typescript-eslint": "^8.68.0"
   }
 }
